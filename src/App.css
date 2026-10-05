@@ -1339,6 +1339,8 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .form-group {
@@ -1346,12 +1348,15 @@
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
+  min-width: 0;
+  width: 100%;
 }
 
 .form-group label {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-secondary);
+  word-break: break-word;
 }
 
 .form-input {
@@ -1362,6 +1367,23 @@
   color: #fff;
   font-size: 0.9rem;
   font-family: var(--font-sans);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+select.form-input {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+input[type="date"].form-input {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -4856,18 +4878,40 @@
   .bestsellers-grid { grid-template-columns: repeat(2, 1fr); }
   .pillars-grid { grid-template-columns: 1fr; }
   .sanctuary-banner-card { grid-template-columns: 1fr; }
-  .booking-layout-grid { grid-template-columns: 1fr; }
-  .checkout-two-col-layout { grid-template-columns: 1fr; }
-  .about-story-split { grid-template-columns: 1fr; }
+  .booking-layout-grid { grid-template-columns: 1fr !important; width: 100% !important; }
+  .checkout-two-col-layout { grid-template-columns: 1fr !important; width: 100% !important; }
+  .about-story-split { grid-template-columns: 1fr !important; }
   .values-grid { grid-template-columns: repeat(2, 1fr); }
-  .contact-info-grid { grid-template-columns: 1fr; }
-  .reviews-split-grid { grid-template-columns: 1fr; }
+  .contact-info-grid { grid-template-columns: 1fr !important; }
+  .reviews-split-grid { grid-template-columns: 1fr !important; }
   .footer-top-grid { grid-template-columns: 1fr 1fr; }
   .kpi-cards-grid { grid-template-columns: repeat(2, 1fr); }
   .order-progress-stepper { grid-template-columns: 1fr; gap: 20px; }
   .step-node { flex-direction: row; text-align: left; gap: 14px; }
-  .order-body-grid { grid-template-columns: 1fr; }
+  .order-body-grid { grid-template-columns: 1fr !important; }
   .menu-catalog-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .form-row-two, .form-grid-two {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+  .track-info-two-col {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .ticket-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .delivery-type-toggle-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .story-key-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
 
   .customizer-body-grid {
     grid-template-columns: 1fr;
@@ -4887,24 +4931,52 @@
 @media (max-width: 768px) {
   .section-container {
     padding: 0 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
-  .navbar-container {
-    padding: 8px 16px;
-    gap: 10px;
+  /* Luxury Navbar Mobile */
+  .luxury-nav-container {
+    padding: 10px 16px !important;
+    gap: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .brand-logo-img {
-    width: 36px;
-    height: 36px;
+  .luxury-brand {
+    gap: 10px !important;
   }
 
-  .brand-name {
-    font-size: 1.15rem;
+  .luxury-logo-img {
+    width: 34px !important;
+    height: 34px !important;
   }
 
-  .brand-sub {
-    font-size: 0.62rem;
+  .luxury-brand-name {
+    font-size: 1.15rem !important;
+    letter-spacing: 0.1em !important;
+  }
+
+  .luxury-brand-tag {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.16em !important;
+  }
+
+  .luxury-nav-right {
+    gap: 10px !important;
+  }
+
+  .luxury-cart-pill {
+    padding: 6px 10px !important;
+    height: 34px !important;
+    gap: 6px !important;
+  }
+
+  .luxury-hamburger {
+    width: 36px !important;
+    height: 36px !important;
+    padding: 8px !important;
   }
 
   .btn-cart-trigger {
@@ -5402,117 +5474,391 @@
 
   /* Checkout Mobile */
   .checkout-two-col-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 20px !important;
   }
 
   .checkout-card-section {
-    padding: 16px;
-    border-radius: 12px;
+    padding: 18px 16px !important;
+    border-radius: var(--radius-md) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
+  /* Universal Form Rows and Grids on Mobile */
+  .form-row-two, 
   .form-grid-two {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .form-group {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 12px !important;
   }
 
   .form-input {
     font-size: 16px !important; /* Prevents iOS auto-zoom */
-    padding: 11px 12px;
+    padding: 11px 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  select.form-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  input[type="date"].form-input {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   .payment-method-card {
-    padding: 12px;
+    padding: 12px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .order-summary-card {
-    padding: 16px;
+    padding: 18px 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .btn-place-order {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 0.95rem !important;
   }
 
   .delivery-type-toggle-grid {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .delivery-option-box {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+  }
+
+  /* Online Payment Dedicated Modal Mobile */
+  .online-payment-modal-overlay {
+    padding: 14px !important;
+  }
+
+  .online-payment-modal-card {
+    padding: 20px 16px !important;
+    max-width: calc(100vw - 28px) !important;
+    width: 100% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .card-mock-visual {
+    padding: 14px !important;
+  }
+
+  .card-num-preview {
+    font-size: 0.95rem !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  /* Booking Mobile */
+  .booking-layout-grid {
+    grid-template-columns: 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 20px !important;
+  }
+
+  .booking-form-card {
+    padding: 20px 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .form-card-title {
+    font-size: 1.25rem !important;
+  }
+
+  .form-card-sub {
+    font-size: 0.8rem !important;
+    margin-bottom: 18px !important;
+  }
+
+  .booking-info-sidebar {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .btn-slot {
+    padding: 8px 6px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .seating-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .seating-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+  }
+
+  .btn-submit-booking {
+    width: 100% !important;
+    padding: 14px 16px !important;
+    font-size: 0.92rem !important;
   }
 
   .ticket-details-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
     padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .ticket-actions-row {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .ticket-actions-row button {
+    width: 100% !important;
+    justify-content: center !important;
   }
 
   .booking-confirmation-ticket {
     padding: 24px 16px !important;
-  }
-
-  /* Booking Mobile */
-  .booking-layout-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .booking-form-card {
-    padding: 18px 16px;
-  }
-
-  .time-slots-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-
-  .btn-slot {
-    padding: 8px 6px;
-    font-size: 0.75rem;
-  }
-
-  .seating-options-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Tracking Mobile */
   .order-progress-stepper {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-    padding-left: 8px;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding-left: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .step-node {
-    flex-direction: row;
-    text-align: left;
-    gap: 12px;
+    flex-direction: row !important;
+    text-align: left !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .track-info-two-col {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .order-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+
+  /* About Page Mobile */
+  .about-story-split {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    margin-bottom: 40px !important;
+    width: 100% !important;
+  }
+
+  .story-key-stats {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .values-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  .about-cta-bar {
+    padding: 24px 16px !important;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 18px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .about-cta-bar .cta-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .about-cta-bar .cta-actions button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* Contact & Reviews Mobile */
+  .contact-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    margin-bottom: 36px !important;
+    width: 100% !important;
+  }
+
+  .contact-details-box {
+    padding: 20px 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .contact-social-pills {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .contact-social-pills .social-tag {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .contact-map-box {
+    min-height: 280px !important;
+    height: 280px !important;
+    width: 100% !important;
+  }
+
+  .reviews-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    width: 100% !important;
+  }
+
+  .leave-review-card {
+    padding: 20px 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   /* Admin Mobile */
   .admin-header-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+    padding: 12px 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .admin-top-controls {
-    width: 100%;
-    justify-content: space-between;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .admin-tabs-container {
+    padding: 8px 16px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-wrap: nowrap !important;
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .admin-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 8px 14px !important;
+    font-size: 0.8rem !important;
   }
 
   .kpi-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
   }
 
   .admin-section-box {
-    padding: 16px 12px;
+    padding: 18px 14px !important;
+    border-radius: var(--radius-md) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .box-header-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .box-actions-group {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .box-actions-group button, 
+  .box-actions-group select, 
+  .box-actions-group input {
+    width: 100% !important;
+  }
+
+  .admin-filter-bar {
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .admin-filter-bar button, 
+  .admin-filter-bar select, 
+  .admin-filter-bar input {
+    width: 100% !important;
   }
 
   .admin-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .admin-data-table {
@@ -5520,29 +5866,48 @@
   }
 
   .admin-modal-card {
-    padding: 18px 14px;
-    max-width: calc(100% - 20px);
+    padding: 18px 14px !important;
+    max-width: 95% !important;
+    width: 95% !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Universal Section Containers Protection */
+  .section-container,
+  .booking-container,
+  .checkout-container,
+  .contact-main-container,
+  .admin-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    overflow-x: hidden !important;
   }
 
   /* Footer & Floating Actions */
   .footer-top-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    width: 100% !important;
   }
 
   .floating-hotline-btn {
-    bottom: 16px;
-    right: 16px;
-    padding: 10px 14px;
-    font-size: 0.82rem;
+    bottom: 16px !important;
+    right: 16px !important;
+    padding: 10px 14px !important;
+    font-size: 0.82rem !important;
   }
 
   .quick-toast-notice {
-    bottom: 70px;
-    right: 16px;
-    left: 16px;
-    text-align: center;
-    justify-content: center;
+    bottom: 70px !important;
+    right: 16px !important;
+    left: 16px !important;
+    text-align: center !important;
+    justify-content: center !important;
   }
 }
 

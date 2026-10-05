@@ -5,7 +5,8 @@ import {
   INITIAL_MENU_ITEMS, 
   INITIAL_REVIEWS, 
   SAMPLE_INITIAL_ORDERS, 
-  SAMPLE_INITIAL_BOOKINGS 
+  SAMPLE_INITIAL_BOOKINGS,
+  SAMPLE_INITIAL_VOUCHERS
 } from './data/coffeeData';
 
 // Shared Components
@@ -66,6 +67,12 @@ function App() {
     return saved ? JSON.parse(saved) : INITIAL_REVIEWS;
   });
 
+  // Synchronized Promo Vouchers (LocalStorage Persistence)
+  const [vouchers, setVouchers] = useState(() => {
+    const saved = localStorage.getItem('brewbeans_vouchers');
+    return saved ? JSON.parse(saved) : SAMPLE_INITIAL_VOUCHERS;
+  });
+
   // Save changes to localStorage
   useEffect(() => {
     localStorage.setItem('brewbeans_menu', JSON.stringify(menuItems));
@@ -82,6 +89,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('brewbeans_reviews', JSON.stringify(reviews));
   }, [reviews]);
+
+  useEffect(() => {
+    localStorage.setItem('brewbeans_vouchers', JSON.stringify(vouchers));
+  }, [vouchers]);
 
   // URL Hash Sync for Browser History (Back/Forward Buttons)
   useEffect(() => {
@@ -205,25 +216,56 @@ function App() {
     showToast(`Review removed.`);
   };
 
+  // Voucher Operations
+  const handleAddVoucher = (newVoucher) => {
+    setVouchers(prev => [newVoucher, ...prev]);
+    showToast(`Voucher ${newVoucher.code} created successfully!`);
+  };
+
+  const handleBulkAddVouchers = (newVouchersList) => {
+    setVouchers(prev => [...newVouchersList, ...prev]);
+    showToast(`${newVouchersList.length} vouchers generated successfully!`);
+  };
+
+  const handleDeleteVoucher = (voucherId) => {
+    setVouchers(prev => prev.filter(v => v.id !== voucherId));
+    showToast(`Voucher deleted.`);
+  };
+
+  const handleToggleVoucher = (voucherId) => {
+    setVouchers(prev => prev.map(v => {
+      if (v.id === voucherId) {
+        const nextState = !v.isActive;
+        showToast(`Voucher ${v.code} is now ${nextState ? 'Active' : 'Disabled'}.`);
+        return { ...v, isActive: nextState };
+      }
+      return v;
+    }));
+  };
+
   const totalCartCount = cartItems.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
     <div className="brewbeans-app-root">
-      {/* Top Navbar */}
-      <Navbar
-        currentPage={currentPage}
-        onNavigate={navigateTo}
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenCustomizer={() => setIsCustomizerOpen(true)}
-      />
+      {/* Top Navbar - Hidden on Admin Portal */}
+      {currentPage !== 'admin' && (
+        <Navbar
+          currentPage={currentPage}
+          onNavigate={navigateTo}
+          cartCount={totalCartCount}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenCustomizer={() => setIsCustomizerOpen(true)}
+        />
+      )}
 
-      {/* Weekly Sunday 40% OFF Promo Banner */}
-      <PromoBanner onApplyCode={(code) => {
-        setPromoCode(code);
-        setPromoApplied(true);
-        showToast(`Promo ${code} applied: 40% OFF Drinks!`);
-      }} />
+      {/* Weekly Sunday 40% OFF Promo Banner - Hidden on Admin Portal */}
+      {currentPage !== 'admin' && (
+        <PromoBanner onApplyCode={(code) => {
+          setPromoCode(code);
+          setPromoApplied(true);
+          showToast(`Promo ${code} applied: 40% OFF Drinks!`);
+        }} />
+      )}
 
       {/* PAGE ROUTING VIEW SWITCHER */}
       <main className="main-page-content">
@@ -262,6 +304,7 @@ function App() {
             setPromoCode={setPromoCode}
             promoApplied={promoApplied}
             setPromoApplied={setPromoApplied}
+            vouchers={vouchers}
           />
         )}
 
@@ -300,13 +343,18 @@ function App() {
             onDeleteMenuItem={handleDeleteMenuItem}
             reviews={reviews}
             onDeleteReview={handleDeleteReview}
+            vouchers={vouchers}
+            onAddVoucher={handleAddVoucher}
+            onBulkAddVouchers={handleBulkAddVouchers}
+            onDeleteVoucher={handleDeleteVoucher}
+            onToggleVoucher={handleToggleVoucher}
             onNavigate={navigateTo}
           />
         )}
       </main>
 
-      {/* Global Footer */}
-      <Footer onNavigate={navigateTo} />
+      {/* Global Footer - Hidden on Admin Portal */}
+      {currentPage !== 'admin' && <Footer onNavigate={navigateTo} />}
 
       {/* Interactive Coffee Customizer Modal */}
       <Customizer
@@ -327,20 +375,23 @@ function App() {
         setPromoCode={setPromoCode}
         promoApplied={promoApplied}
         setPromoApplied={setPromoApplied}
+        vouchers={vouchers}
         onNavigate={navigateTo}
       />
 
-      {/* Floating WhatsApp Barista Hotline */}
-      <a
-        href={`https://wa.me/${CAFE_INFO.phoneRaw}?text=Hi%20Brewbeans%20Karachi!%20I%20want%20to%20order%20specialty%20coffee.`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="floating-hotline-btn"
-        title="Chat with Barista"
-      >
-        <WhatsAppIcon size={20} />
-        <span className="desktop-only">Barista Hotline</span>
-      </a>
+      {/* Floating WhatsApp Barista Hotline - Hidden on Admin Portal */}
+      {currentPage !== 'admin' && (
+        <a
+          href={`https://wa.me/${CAFE_INFO.phoneRaw}?text=Hi%20Brewbeans%20Karachi!%20I%20want%20to%20order%20specialty%20coffee.`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="floating-hotline-btn"
+          title="Chat with Barista"
+        >
+          <WhatsAppIcon size={20} />
+          <span className="desktop-only">Barista Hotline</span>
+        </a>
+      )}
 
       {/* Quick Action Toast */}
       {toastMessage && (

@@ -6,7 +6,10 @@ import {
   SearchIcon, 
   ArrowRightIcon,
   ClockIcon,
-  MapPinIcon
+  MapPinIcon,
+  TicketIcon,
+  CopyIcon,
+  TrashIcon
 } from '../components/Icons';
 
 export default function AdminPage({ 
@@ -22,6 +25,11 @@ export default function AdminPage({
   onDeleteMenuItem,
   reviews,
   onDeleteReview,
+  vouchers = [],
+  onAddVoucher,
+  onBulkAddVouchers,
+  onDeleteVoucher,
+  onToggleVoucher,
   onNavigate
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,11 +37,50 @@ export default function AdminPage({
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'orders' | 'bookings' | 'menu' | 'reviews'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'orders' | 'bookings' | 'menu' | 'reviews' | 'vouchers'
 
   // Orders Filter & Search
   const [orderFilter, setOrderFilter] = useState('all');
   const [orderSearch, setOrderSearch] = useState('');
+
+  // Voucher Management States
+  const [voucherFilter, setVoucherFilter] = useState('all'); // 'all' | 'active' | 'expired'
+  const [voucherSearch, setVoucherSearch] = useState('');
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(null);
+
+  const getDefaultExpiry = (days = 7) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    d.setHours(23, 59, 0, 0);
+    return d.toISOString().slice(0, 16);
+  };
+
+  const [voucherForm, setVoucherForm] = useState({
+    code: '',
+    title: '',
+    discountType: 'percentage', // 'percentage' | 'fixed'
+    discountValue: 20,
+    appliesTo: 'all', // 'all' | 'drinks' | 'food'
+    minOrder: 0,
+    expiryDate: getDefaultExpiry(7),
+    usageLimit: '',
+    description: '',
+    isActive: true
+  });
+
+  const [bulkForm, setBulkForm] = useState({
+    count: 5,
+    prefix: 'VIP',
+    title: 'VIP Promo Pass',
+    discountType: 'percentage',
+    discountValue: 25,
+    appliesTo: 'all',
+    minOrder: 0,
+    expiryDays: 14,
+    usageLimit: 1
+  });
 
   // Menu Modal State
   const [showItemModal, setShowItemModal] = useState(false);
@@ -167,6 +214,137 @@ export default function AdminPage({
     return matchStatus && matchSearch;
   });
 
+  // Voucher Helpers & Filtered List
+  const getVoucherStatus = (v) => {
+    if (!v.isActive) {
+      return { status: 'paused', label: '⏸️ Paused', className: 'status-tag-paused' };
+    }
+    if (v.expiryDate) {
+      const exp = new Date(v.expiryDate).getTime();
+      const now = Date.now();
+      if (now > exp) {
+        return { status: 'expired', label: '🔴 Expired (Blocked)', className: 'status-tag-expired' };
+      }
+      const diffMs = exp - now;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const countdown = diffDays > 0 ? `${diffDays}d ${diffHours}h remaining` : `${diffHours}h remaining`;
+      return { status: 'active', label: `🟢 Valid (${countdown})`, className: 'status-tag-active' };
+    }
+    return { status: 'active', label: '🟢 Active (No Expiry)', className: 'status-tag-active' };
+  };
+
+  const handleCopyCode = (code) => {
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+    }
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const handleGenerateRandomCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let rand = '';
+    for (let i = 0; i < 4; i++) {
+      rand += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setVoucherForm(prev => ({ ...prev, code: `BB-${rand}` }));
+  };
+
+  const handleSetExpiryPreset = (hoursOrDays, type = 'days') => {
+    const d = new Date();
+    if (type === 'hours') {
+      d.setHours(d.getHours() + hoursOrDays);
+    } else {
+      d.setDate(d.getDate() + hoursOrDays);
+      d.setHours(23, 59, 0, 0);
+    }
+    setVoucherForm(prev => ({ ...prev, expiryDate: d.toISOString().slice(0, 16) }));
+  };
+
+  const handleCreateVoucherSubmit = (e) => {
+    e.preventDefault();
+    if (!voucherForm.code.trim()) {
+      alert('Please enter a voucher code.');
+      return;
+    }
+    const cleanCode = voucherForm.code.trim().toUpperCase();
+    const newVoucher = {
+      id: `VCH-${Date.now().toString(36).toUpperCase()}`,
+      code: cleanCode,
+      title: voucherForm.title.trim() || `${voucherForm.discountValue}${voucherForm.discountType === 'percentage' ? '%' : ' Rs'} Off`,
+      discountType: voucherForm.discountType,
+      discountValue: Number(voucherForm.discountValue) || 0,
+      appliesTo: voucherForm.appliesTo,
+      minOrder: Number(voucherForm.minOrder) || 0,
+      expiryDate: voucherForm.expiryDate,
+      usageLimit: voucherForm.usageLimit ? Number(voucherForm.usageLimit) : null,
+      usedCount: 0,
+      isActive: voucherForm.isActive !== false,
+      description: voucherForm.description || `${voucherForm.discountValue}${voucherForm.discountType === 'percentage' ? '%' : ' Rs'} discount on ${voucherForm.appliesTo} items`
+    };
+    onAddVoucher(newVoucher);
+    setShowVoucherModal(false);
+    setVoucherForm({
+      code: '',
+      title: '',
+      discountType: 'percentage',
+      discountValue: 20,
+      appliesTo: 'all',
+      minOrder: 0,
+      expiryDate: getDefaultExpiry(7),
+      usageLimit: '',
+      description: '',
+      isActive: true
+    });
+  };
+
+  const handleBulkSubmit = (e) => {
+    e.preventDefault();
+    const count = Math.max(1, Math.min(50, Number(bulkForm.count) || 5));
+    const prefix = (bulkForm.prefix || 'VIP').trim().toUpperCase();
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const exp = new Date();
+    exp.setDate(exp.getDate() + (Number(bulkForm.expiryDays) || 7));
+    exp.setHours(23, 59, 0, 0);
+    const expiryStr = exp.toISOString().slice(0, 16);
+
+    const newBatch = [];
+    for (let i = 0; i < count; i++) {
+      let rand = '';
+      for (let j = 0; j < 4; j++) {
+        rand += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      newBatch.push({
+        id: `VCH-${Date.now().toString(36).toUpperCase()}-${i}`,
+        code: `${prefix}-${rand}`,
+        title: bulkForm.title || `${prefix} Batch Voucher`,
+        discountType: bulkForm.discountType,
+        discountValue: Number(bulkForm.discountValue) || 20,
+        appliesTo: bulkForm.appliesTo,
+        minOrder: Number(bulkForm.minOrder) || 0,
+        expiryDate: expiryStr,
+        usageLimit: Number(bulkForm.usageLimit) || 1,
+        usedCount: 0,
+        isActive: true,
+        description: `Batch generated ${bulkForm.discountValue}${bulkForm.discountType === 'percentage' ? '%' : ' Rs.'} voucher`
+      });
+    }
+    onBulkAddVouchers(newBatch);
+    setShowBulkModal(false);
+  };
+
+  const filteredVouchers = vouchers.filter(v => {
+    const isExpired = v.expiryDate && new Date(v.expiryDate).getTime() < Date.now();
+    const matchFilter = 
+      voucherFilter === 'all' ||
+      (voucherFilter === 'active' && v.isActive && !isExpired) ||
+      (voucherFilter === 'expired' && isExpired);
+    const q = voucherSearch.toLowerCase().trim();
+    const matchSearch = !q || v.code.toLowerCase().includes(q) || (v.title && v.title.toLowerCase().includes(q));
+    return matchFilter && matchSearch;
+  });
+
   // If Not Authenticated -> Show Login View
   if (!isAuthenticated) {
     return (
@@ -282,6 +460,12 @@ export default function AdminPage({
           >
             <span>⭐ Reviews ({reviews.length})</span>
           </button>
+          <button 
+            className={`admin-tab-btn ${activeTab === 'vouchers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vouchers')}
+          >
+            <span>🎟️ Vouchers ({vouchers.length})</span>
+          </button>
         </div>
       </div>
 
@@ -313,6 +497,12 @@ export default function AdminPage({
                 <span className="kpi-lbl">Table Reservations</span>
                 <span className="kpi-val">{totalBookingsCount}</span>
                 <span className="kpi-sub">Upcoming guest bookings</span>
+              </div>
+
+              <div className="kpi-card gold" style={{ cursor: 'pointer' }} onClick={() => setActiveTab('vouchers')}>
+                <span className="kpi-lbl">Active Vouchers</span>
+                <span className="kpi-val">{vouchers.filter(v => v.isActive && (!v.expiryDate || new Date(v.expiryDate).getTime() > Date.now())).length}</span>
+                <span className="kpi-sub">{vouchers.length} Total Promotional Coupons</span>
               </div>
             </div>
 
@@ -736,6 +926,197 @@ export default function AdminPage({
             </div>
           </div>
         )}
+
+        {/* TAB 6: VOUCHERS & PROMO DISCOUNT STUDIO */}
+        {activeTab === 'vouchers' && (
+          <div className="admin-vouchers-tab">
+            <div className="box-header-row mb-20">
+              <div>
+                <h4>🎟️ Store Promo Vouchers & Discount Studio ({vouchers.length})</h4>
+                <p>Create time-limited promotional vouchers, configure automatic expiry dates, generate multi-code batches, and monitor redemptions.</p>
+              </div>
+
+              <div className="voucher-top-actions">
+                <button 
+                  type="button"
+                  className="btn-create-voucher"
+                  onClick={() => setShowVoucherModal(true)}
+                >
+                  <PlusIcon size={16} />
+                  <span>+ Create Single Voucher</span>
+                </button>
+                <button 
+                  type="button"
+                  className="btn-multi-voucher"
+                  onClick={() => setShowBulkModal(true)}
+                >
+                  <span>⚡ Multi-Generate Vouchers</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Voucher Quick Stats */}
+            <div className="voucher-quick-stats-grid">
+              <div className="v-stat-card">
+                <span className="v-stat-num">{vouchers.filter(v => v.isActive && (!v.expiryDate || new Date(v.expiryDate).getTime() > Date.now())).length}</span>
+                <span className="v-stat-lbl">Active & Valid Vouchers</span>
+              </div>
+              <div className="v-stat-card expired">
+                <span className="v-stat-num">{vouchers.filter(v => v.expiryDate && new Date(v.expiryDate).getTime() <= Date.now()).length}</span>
+                <span className="v-stat-lbl">Expired / Blocked Vouchers</span>
+              </div>
+              <div className="v-stat-card">
+                <span className="v-stat-num">{vouchers.reduce((acc, v) => acc + (v.usedCount || 0), 0)}</span>
+                <span className="v-stat-lbl">Total Customer Redemptions</span>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div className="orders-control-bar mt-20 mb-20">
+              <div className="search-order-wrap">
+                <SearchIcon size={16} />
+                <input 
+                  type="text" 
+                  placeholder="Search voucher code (e.g. SUNDAY40, WELCOME20) or campaign..."
+                  value={voucherSearch}
+                  onChange={(e) => setVoucherSearch(e.target.value)}
+                  className="admin-search-input"
+                />
+              </div>
+
+              <div className="order-filter-pills">
+                <button 
+                  type="button"
+                  className={`filter-pill ${voucherFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setVoucherFilter('all')}
+                >
+                  All ({vouchers.length})
+                </button>
+                <button 
+                  type="button"
+                  className={`filter-pill ${voucherFilter === 'active' ? 'active' : ''}`}
+                  onClick={() => setVoucherFilter('active')}
+                >
+                  🟢 Active ({vouchers.filter(v => v.isActive && (!v.expiryDate || new Date(v.expiryDate).getTime() > Date.now())).length})
+                </button>
+                <button 
+                  type="button"
+                  className={`filter-pill ${voucherFilter === 'expired' ? 'active' : ''}`}
+                  onClick={() => setVoucherFilter('expired')}
+                >
+                  🔴 Expired ({vouchers.filter(v => v.expiryDate && new Date(v.expiryDate).getTime() <= Date.now()).length})
+                </button>
+              </div>
+            </div>
+
+            {/* Voucher Cards Grid */}
+            <div className="vouchers-cards-grid">
+              {filteredVouchers.length > 0 ? (
+                filteredVouchers.map(v => {
+                  const vStatus = getVoucherStatus(v);
+                  const isExpired = v.expiryDate && new Date(v.expiryDate).getTime() <= Date.now();
+                  return (
+                    <div key={v.id} className={`luxury-voucher-ticket ${isExpired ? 'expired-ticket' : ''} ${!v.isActive ? 'paused-ticket' : ''}`}>
+                      <div className="ticket-edge-left">
+                        <div className="ticket-notch top"></div>
+                        <div className="ticket-notch bottom"></div>
+                      </div>
+
+                      <div className="ticket-main-content">
+                        {/* Header Row */}
+                        <div className="ticket-top-row">
+                          <div className="ticket-code-wrap">
+                            <span className="voucher-code-display">{v.code}</span>
+                            <button 
+                              type="button"
+                              className="btn-copy-code"
+                              onClick={() => handleCopyCode(v.code)}
+                              title="Copy Voucher Code"
+                            >
+                              <CopyIcon size={14} />
+                              <span>{copiedCode === v.code ? 'Copied!' : 'Copy'}</span>
+                            </button>
+                          </div>
+
+                          <span className={`voucher-status-pill ${vStatus.className}`}>
+                            {vStatus.label}
+                          </span>
+                        </div>
+
+                        {/* Title and Discount Banner */}
+                        <div className="ticket-discount-banner">
+                          <div className="discount-badge-large">
+                            {v.discountType === 'percentage' ? `${v.discountValue}% OFF` : `Rs. ${v.discountValue} OFF`}
+                          </div>
+                          <div className="discount-applies-tag">
+                            {v.appliesTo === 'drinks' ? '☕ Handcrafted Drinks' : v.appliesTo === 'food' ? '🥐 Bakery & Desserts' : '✨ Entire Basket'}
+                          </div>
+                        </div>
+
+                        <h5 className="voucher-title-text">{v.title}</h5>
+                        {v.description && <p className="voucher-desc-text">{v.description}</p>}
+
+                        {/* Validity & Expiry Timeline */}
+                        <div className="voucher-validity-box">
+                          <div className="validity-row">
+                            <ClockIcon size={14} className="validity-icon" />
+                            <span className="validity-label">Expiry Date & Time:</span>
+                            <span className={`validity-val ${isExpired ? 'expired-text' : ''}`}>
+                              {v.expiryDate ? new Date(v.expiryDate).toLocaleString('en-PK', {
+                                dateStyle: 'medium',
+                                timeStyle: 'short'
+                              }) : 'Never Expires (Permanent)'}
+                            </span>
+                          </div>
+
+                          <div className="validity-sub-meta">
+                            <span>Min. Spend: <strong>{v.minOrder > 0 ? `Rs. ${v.minOrder}` : 'No Minimum'}</strong></span>
+                            <span>Redemptions: <strong>{v.usedCount || 0} / {v.usageLimit ? v.usageLimit : 'Unlimited'}</strong></span>
+                          </div>
+                        </div>
+
+                        {/* Actions Row */}
+                        <div className="ticket-footer-actions">
+                          <button 
+                            type="button" 
+                            className={`btn-toggle-voucher ${v.isActive ? 'active-state' : 'paused-state'}`}
+                            onClick={() => onToggleVoucher(v.id)}
+                            title={v.isActive ? 'Pause voucher' : 'Activate voucher'}
+                          >
+                            {v.isActive ? '⏸️ Pause' : '▶️ Activate'}
+                          </button>
+
+                          <button 
+                            type="button"
+                            className="btn-delete-voucher"
+                            onClick={() => {
+                              if (window.confirm(`Delete voucher "${v.code}" permanently?`)) {
+                                onDeleteVoucher(v.id);
+                              }
+                            }}
+                            title="Delete Voucher"
+                          >
+                            <TrashIcon size={15} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="empty-vouchers-view">
+                  <TicketIcon size={48} className="empty-ico" />
+                  <h4>No Vouchers Found</h4>
+                  <p>Create your first promotional discount voucher or generate multiple batch passes.</p>
+                  <button type="button" className="btn-create-voucher" onClick={() => setShowVoucherModal(true)}>
+                    + Create First Voucher
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ADD / EDIT ITEM MODAL */}
@@ -866,6 +1247,317 @@ export default function AdminPage({
                 <button type="submit" className="btn-save-item">
                   <CheckIcon size={16} />
                   <span>{editingItem ? 'Save Changes' : 'Add Item to Menu'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SINGLE VOUCHER CREATION MODAL */}
+      {showVoucherModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card">
+            <div className="modal-header">
+              <div className="modal-header-icon-title">
+                <TicketIcon size={22} className="modal-title-ico gold" />
+                <div>
+                  <h3>Create New Promotional Voucher</h3>
+                  <p>Configure discount rules, timing, and automated expiration</p>
+                </div>
+              </div>
+              <button type="button" className="btn-close-modal" onClick={() => setShowVoucherModal(false)}>
+                <XIcon size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateVoucherSubmit} className="admin-item-form">
+              <div className="form-group">
+                <label>Voucher Code *</label>
+                <div className="voucher-code-input-row">
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. SUMMER30, VIP50"
+                    value={voucherForm.code}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, code: e.target.value.toUpperCase() })}
+                    className="form-input voucher-code-field"
+                  />
+                  <button 
+                    type="button" 
+                    className="btn-random-code"
+                    onClick={handleGenerateRandomCode}
+                    title="Generate a random code"
+                  >
+                    🎲 Random Code
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Campaign Title / Label *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Summer Weekend Treat, First Order Welcome"
+                  value={voucherForm.title}
+                  onChange={(e) => setVoucherForm({ ...voucherForm, title: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label>Discount Type *</label>
+                  <select
+                    value={voucherForm.discountType}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, discountType: e.target.value })}
+                    className="form-input"
+                  >
+                    <option value="percentage">% Percentage Discount</option>
+                    <option value="fixed">Fixed PKR Amount (Rs. OFF)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Discount Value * {voucherForm.discountType === 'percentage' ? '(%)' : '(PKR Rs.)'}</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max={voucherForm.discountType === 'percentage' ? 100 : 10000}
+                    required
+                    placeholder={voucherForm.discountType === 'percentage' ? '20' : '150'}
+                    value={voucherForm.discountValue}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, discountValue: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label>Applies To *</label>
+                  <select
+                    value={voucherForm.appliesTo}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, appliesTo: e.target.value })}
+                    className="form-input"
+                  >
+                    <option value="all">Entire Basket (All Items)</option>
+                    <option value="drinks">Handcrafted Coffee Drinks Only</option>
+                    <option value="food">Bakery & Desserts Only</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Minimum Spend (PKR)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    placeholder="0 (No Minimum)"
+                    value={voucherForm.minOrder}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, minOrder: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Exact Expiration Date & Time *</label>
+                <input 
+                  type="datetime-local" 
+                  required
+                  value={voucherForm.expiryDate}
+                  onChange={(e) => setVoucherForm({ ...voucherForm, expiryDate: e.target.value })}
+                  className="form-input"
+                />
+                
+                {/* Expiry Quick Presets */}
+                <div className="expiry-presets-row">
+                  <span className="preset-label">Quick Presets:</span>
+                  <button type="button" className="btn-preset-chip" onClick={() => handleSetExpiryPreset(24, 'hours')}>
+                    +24 Hours
+                  </button>
+                  <button type="button" className="btn-preset-chip" onClick={() => handleSetExpiryPreset(3, 'days')}>
+                    +3 Days
+                  </button>
+                  <button type="button" className="btn-preset-chip" onClick={() => handleSetExpiryPreset(7, 'days')}>
+                    +7 Days
+                  </button>
+                  <button type="button" className="btn-preset-chip" onClick={() => handleSetExpiryPreset(30, 'days')}>
+                    +30 Days
+                  </button>
+                </div>
+                <small className="form-help-text">
+                  ⚠️ When this time arrives, this voucher will automatically stop working across the site.
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label>Total Redemption Limit</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  placeholder="e.g. 100 (Leave blank for unlimited uses)"
+                  value={voucherForm.usageLimit}
+                  onChange={(e) => setVoucherForm({ ...voucherForm, usageLimit: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description / Customer Details</label>
+                <textarea 
+                  rows={2}
+                  placeholder="e.g. Enjoy 20% OFF on all handcrafted drinks this weekend!"
+                  value={voucherForm.description}
+                  onChange={(e) => setVoucherForm({ ...voucherForm, description: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-row-checkboxes">
+                <label className="checkbox-label">
+                  <input 
+                    type="checkbox"
+                    checked={voucherForm.isActive}
+                    onChange={(e) => setVoucherForm({ ...voucherForm, isActive: e.target.checked })}
+                  />
+                  <span>Activate voucher immediately upon saving</span>
+                </label>
+              </div>
+
+              <div className="modal-actions-row">
+                <button type="button" className="btn-cancel" onClick={() => setShowVoucherModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save-item">
+                  <CheckIcon size={16} />
+                  <span>Create & Activate Voucher</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MULTI-GENERATE VOUCHERS MODAL (BATCH CREATION) */}
+      {showBulkModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card">
+            <div className="modal-header">
+              <div className="modal-header-icon-title">
+                <span style={{ fontSize: '1.4rem' }}>⚡</span>
+                <div>
+                  <h3>Multi-Generate Promo Passes (Batch Studio)</h3>
+                  <p>Generate multiple unique discount codes in 1 click for promotions and customer campaigns</p>
+                </div>
+              </div>
+              <button type="button" className="btn-close-modal" onClick={() => setShowBulkModal(false)}>
+                <XIcon size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkSubmit} className="admin-item-form">
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label>How Many Vouchers to Generate? *</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="50"
+                    required
+                    value={bulkForm.count}
+                    onChange={(e) => setBulkForm({ ...bulkForm, count: e.target.value })}
+                    className="form-input"
+                  />
+                  <small className="form-help-text">Max 50 per batch</small>
+                </div>
+
+                <div className="form-group">
+                  <label>Code Prefix *</label>
+                  <input 
+                    type="text" 
+                    required
+                    placeholder="e.g. VIP, GUEST, EVENT"
+                    value={bulkForm.prefix}
+                    onChange={(e) => setBulkForm({ ...bulkForm, prefix: e.target.value.toUpperCase() })}
+                    className="form-input"
+                  />
+                  <small className="form-help-text">e.g. {bulkForm.prefix || 'VIP'}-A7X9, {bulkForm.prefix || 'VIP'}-9K2B</small>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Batch Campaign Title</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. VIP Influencer Pass, Loyalty Rewards"
+                  value={bulkForm.title}
+                  onChange={(e) => setBulkForm({ ...bulkForm, title: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label>Discount Type *</label>
+                  <select
+                    value={bulkForm.discountType}
+                    onChange={(e) => setBulkForm({ ...bulkForm, discountType: e.target.value })}
+                    className="form-input"
+                  >
+                    <option value="percentage">% Percentage Discount</option>
+                    <option value="fixed">Fixed PKR Amount (Rs. OFF)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Discount Value * {bulkForm.discountType === 'percentage' ? '(%)' : '(PKR Rs.)'}</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    required
+                    value={bulkForm.discountValue}
+                    onChange={(e) => setBulkForm({ ...bulkForm, discountValue: e.target.value })}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row-2col">
+                <div className="form-group">
+                  <label>Validity Duration (Days from now) *</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    required
+                    value={bulkForm.expiryDays}
+                    onChange={(e) => setBulkForm({ ...bulkForm, expiryDays: e.target.value })}
+                    className="form-input"
+                  />
+                  <small className="form-help-text">Valid for {bulkForm.expiryDays} days, then expires automatically</small>
+                </div>
+
+                <div className="form-group">
+                  <label>Redemptions Per Code</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={bulkForm.usageLimit}
+                    onChange={(e) => setBulkForm({ ...bulkForm, usageLimit: e.target.value })}
+                    className="form-input"
+                  />
+                  <small className="form-help-text">e.g. 1 for single-use passes</small>
+                </div>
+              </div>
+
+              <div className="modal-actions-row">
+                <button type="button" className="btn-cancel" onClick={() => setShowBulkModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-save-item">
+                  <span>⚡ Generate {bulkForm.count || 5} Vouchers Now</span>
                 </button>
               </div>
             </form>

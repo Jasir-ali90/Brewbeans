@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CAFE_INFO } from '../data/coffeeData';
+import { CAFE_INFO, checkVoucherValidity } from '../data/coffeeData';
 import { 
   ShoppingBagIcon, 
   XIcon, 
@@ -24,6 +24,7 @@ export default function CartDrawer({
   setPromoCode,
   promoApplied,
   setPromoApplied,
+  vouchers = [],
   onNavigate
 }) {
   const [orderType, setOrderType] = useState('direct'); // 'direct' | 'whatsapp' | 'foodpanda' | 'pickup'
@@ -38,29 +39,67 @@ export default function CartDrawer({
   // Calculate totals
   const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  // Discount calculation if SUNDAY40 is applied
-  const isSundayPromo = promoApplied && (promoCode === 'SUNDAY40');
-  
-  // Calculate discount on drinks only (categories: hot, iced, frappe, custom)
-  const discountableAmount = items.reduce((acc, item) => {
-    if (item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'custom') {
-      return acc + item.price * item.quantity;
-    }
-    return acc;
-  }, 0);
+  // Dynamic voucher evaluation
+  let discountValue = 0;
+  let activeVoucherInfo = null;
 
-  const discountValue = isSundayPromo ? Math.round(discountableAmount * 0.4) : 0;
+  if (promoApplied && promoCode) {
+    const cleanCode = promoCode.trim().toUpperCase();
+    const matchedVoucher = vouchers.find(v => v.code.toUpperCase() === cleanCode);
+    
+    if (matchedVoucher) {
+      const validity = checkVoucherValidity(matchedVoucher, items, subtotal);
+      if (validity.valid) {
+        discountValue = validity.discount;
+        activeVoucherInfo = matchedVoucher;
+      }
+    } else if (cleanCode === 'SUNDAY40') {
+      // Legacy fallback
+      const discountableAmount = items.reduce((acc, item) => {
+        if (item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'custom') {
+          return acc + item.price * item.quantity;
+        }
+        return acc;
+      }, 0);
+      discountValue = Math.round(discountableAmount * 0.4);
+    }
+  }
+
   const grandTotal = Math.max(0, subtotal - discountValue);
 
   const handleApplyPromo = (e) => {
     e.preventDefault();
-    if (inputCode.trim().toUpperCase() === 'SUNDAY40') {
-      setPromoCode('SUNDAY40');
-      setPromoApplied(true);
-      setCouponError('');
-    } else {
-      setCouponError('Invalid coupon. Enter SUNDAY40 for 40% OFF all drinks!');
+    const cleanCode = inputCode.trim().toUpperCase();
+    if (!cleanCode) return;
+
+    const voucher = vouchers.find(v => v.code.toUpperCase() === cleanCode);
+    if (!voucher) {
+      if (cleanCode === 'SUNDAY40') {
+        setPromoCode('SUNDAY40');
+        setPromoApplied(true);
+        setCouponError('');
+        return;
+      }
+      setCouponError(`Invalid voucher code "${cleanCode}".`);
+      return;
     }
+
+    const validity = checkVoucherValidity(voucher, items, subtotal);
+    if (!validity.valid) {
+      setCouponError(validity.error);
+      return;
+    }
+
+    setPromoCode(voucher.code);
+    setPromoApplied(true);
+    setCouponError('');
+  };
+
+  const handleRemovePromo = () => {
+    setPromoCode('');
+    setPromoApplied(false);
+    setInputCode('');
+    setCouponError('');
   };
 
   const handleWhatsAppCheckout = () => {
@@ -219,7 +258,7 @@ export default function CartDrawer({
                 <PercentIcon size={16} className="coupon-ico" />
                 <input 
                   type="text" 
-                  placeholder="Enter Promo Code (SUNDAY40)"
+                  placeholder="Enter Promo Code (e.g. WELCOME20)"
                   value={inputCode}
                   onChange={(e) => {
                     setInputCode(e.target.value);
@@ -235,7 +274,19 @@ export default function CartDrawer({
               {promoApplied && (
                 <div className="coupon-success-tag">
                   <CheckIcon size={14} />
-                  <span>SUNDAY40 Applied! 40% OFF Handcrafted Drinks</span>
+                  <span>
+                    {activeVoucherInfo 
+                      ? `${activeVoucherInfo.code} Applied! (${activeVoucherInfo.title})` 
+                      : `${promoCode} Applied!`}
+                  </span>
+                  <button 
+                    type="button" 
+                    className="btn-remove-applied-promo" 
+                    onClick={handleRemovePromo}
+                    title="Remove voucher"
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
             </form>
@@ -248,7 +299,7 @@ export default function CartDrawer({
               </div>
               {discountValue > 0 && (
                 <div className="total-line discount">
-                  <span>Sunday Special (40% OFF Drinks)</span>
+                  <span>{activeVoucherInfo ? `${activeVoucherInfo.code} Discount` : 'Special Voucher Discount'}</span>
                   <span className="discount-amount">- Rs. {discountValue}</span>
                 </div>
               )}

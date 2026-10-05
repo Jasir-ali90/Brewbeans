@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { checkVoucherValidity } from '../data/coffeeData';
 import { 
   ShoppingBagIcon, 
   CheckIcon, 
@@ -14,7 +15,8 @@ export default function CheckoutPage({
   promoCode,
   setPromoCode,
   promoApplied,
-  setPromoApplied
+  setPromoApplied,
+  vouchers = []
 }) {
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -62,15 +64,29 @@ export default function CheckoutPage({
   // Totals
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  // Sunday discount
-  const isSundayPromo = promoApplied && promoCode === 'SUNDAY40';
-  const discountableAmount = cartItems.reduce((acc, item) => {
-    if (item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'custom') {
-      return acc + item.price * item.quantity;
+  // Dynamic Voucher Evaluation
+  let discountValue = 0;
+  let activeVoucherInfo = null;
+
+  if (promoApplied && promoCode) {
+    const cleanCode = promoCode.trim().toUpperCase();
+    const matchedVoucher = (vouchers || []).find(v => v.code.toUpperCase() === cleanCode);
+    if (matchedVoucher) {
+      const validity = checkVoucherValidity(matchedVoucher, cartItems, subtotal);
+      if (validity.valid) {
+        discountValue = validity.discount;
+        activeVoucherInfo = matchedVoucher;
+      }
+    } else if (cleanCode === 'SUNDAY40') {
+      const discountableAmount = cartItems.reduce((acc, item) => {
+        if (item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'custom') {
+          return acc + item.price * item.quantity;
+        }
+        return acc;
+      }, 0);
+      discountValue = Math.round(discountableAmount * 0.4);
     }
-    return acc;
-  }, 0);
-  const discountValue = isSundayPromo ? Math.round(discountableAmount * 0.4) : 0;
+  }
 
   // Delivery fee
   const deliveryFee = customerInfo.deliveryType === 'pickup' ? 0 : (subtotal > 1500 ? 0 : 100);
@@ -79,11 +95,32 @@ export default function CheckoutPage({
   // Apply promo
   const handleApplyPromo = (e) => {
     e.preventDefault();
-    if (promoCode.trim().toUpperCase() === 'SUNDAY40') {
-      setPromoApplied(true);
-    } else {
-      alert('Invalid code. Use SUNDAY40 for 40% OFF all handcrafted drinks!');
+    const cleanCode = (promoCode || '').trim().toUpperCase();
+    if (!cleanCode) return;
+
+    const voucher = (vouchers || []).find(v => v.code.toUpperCase() === cleanCode);
+    if (!voucher) {
+      if (cleanCode === 'SUNDAY40') {
+        setPromoApplied(true);
+        return;
+      }
+      alert(`Invalid voucher code "${cleanCode}".`);
+      return;
     }
+
+    const validity = checkVoucherValidity(voucher, cartItems, subtotal);
+    if (!validity.valid) {
+      alert(validity.error);
+      return;
+    }
+
+    setPromoCode(voucher.code);
+    setPromoApplied(true);
+  };
+
+  const handleRemovePromo = () => {
+    setPromoCode('');
+    setPromoApplied(false);
   };
 
   // Submit Order Logic
@@ -406,7 +443,7 @@ export default function CheckoutPage({
               <form onSubmit={handleApplyPromo} className="summary-promo-form">
                 <input 
                   type="text" 
-                  placeholder="Promo Code (SUNDAY40)" 
+                  placeholder="Promo Code (e.g. WELCOME20)" 
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
                   className="promo-code-input"
@@ -417,8 +454,29 @@ export default function CheckoutPage({
               </form>
 
               {promoApplied && (
-                <div className="promo-active-notice">
-                  ✨ 40% OFF Sunday discount applied to handcrafted drinks!
+                <div className="promo-active-notice" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span>
+                    ✨ {activeVoucherInfo 
+                      ? `${activeVoucherInfo.code} (${activeVoucherInfo.title}) Applied!` 
+                      : `${promoCode} Applied!`}
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={handleRemovePromo}
+                    style={{ 
+                      background: 'rgba(239, 68, 68, 0.15)', 
+                      border: '1px solid rgba(239, 68, 68, 0.3)', 
+                      color: '#f87171', 
+                      borderRadius: '4px',
+                      cursor: 'pointer', 
+                      padding: '2px 7px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold' 
+                    }}
+                    title="Remove voucher"
+                  >
+                    Remove
+                  </button>
                 </div>
               )}
 
@@ -431,7 +489,7 @@ export default function CheckoutPage({
 
                 {discountValue > 0 && (
                   <div className="cost-row discount">
-                    <span>Sunday Deal (40% OFF)</span>
+                    <span>{activeVoucherInfo ? `${activeVoucherInfo.code} Discount` : 'Voucher Discount'}</span>
                     <span>- Rs. {discountValue}</span>
                   </div>
                 )}

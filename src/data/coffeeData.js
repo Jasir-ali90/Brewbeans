@@ -367,3 +367,128 @@ export const SAMPLE_INITIAL_BOOKINGS = [
     createdAt: "2026-10-05 11:20"
   }
 ];
+
+export const SAMPLE_INITIAL_VOUCHERS = [
+  {
+    id: "VCH-SUNDAY40",
+    code: "SUNDAY40",
+    title: "Sunday Signature 40% OFF",
+    discountType: "percentage", // "percentage" | "fixed"
+    discountValue: 40,
+    appliesTo: "drinks", // "all" | "drinks" | "food"
+    minOrder: 0,
+    expiryDate: "2026-12-31T23:59:00",
+    isActive: true,
+    usedCount: 48,
+    usageLimit: null,
+    description: "40% OFF all handcrafted coffee drinks (Hot, Iced, Frappe & Custom)"
+  },
+  {
+    id: "VCH-WELCOME20",
+    code: "WELCOME20",
+    title: "New Guest Welcome Treat",
+    discountType: "percentage",
+    discountValue: 20,
+    appliesTo: "all",
+    minOrder: 500,
+    expiryDate: "2026-11-30T23:59:00",
+    isActive: true,
+    usedCount: 19,
+    usageLimit: 250,
+    description: "20% OFF entire artisan coffee & bakery basket (Min. Rs. 500)"
+  },
+  {
+    id: "VCH-FLASH100",
+    code: "FLASH100",
+    title: "Flash Rs. 100 Off (Past Deal)",
+    discountType: "fixed",
+    discountValue: 100,
+    appliesTo: "all",
+    minOrder: 800,
+    expiryDate: "2026-10-04T12:00:00", // Expired sample
+    isActive: true,
+    usedCount: 50,
+    usageLimit: 50,
+    description: "Flat Rs. 100 OFF on orders above Rs. 800 (Expired Flash Promotion)"
+  }
+];
+
+export const checkVoucherValidity = (voucher, items = [], subtotal = 0) => {
+  if (!voucher) {
+    return { valid: false, error: 'Invalid voucher code.' };
+  }
+  if (!voucher.isActive) {
+    return { valid: false, error: `Voucher "${voucher.code}" is currently disabled by store admin.` };
+  }
+  
+  if (voucher.expiryDate) {
+    const expiryTime = new Date(voucher.expiryDate).getTime();
+    const now = Date.now();
+    if (now > expiryTime) {
+      const expDateStr = new Date(voucher.expiryDate).toLocaleDateString('en-PK', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      return { 
+        valid: false, 
+        error: `Voucher "${voucher.code}" expired on ${expDateStr}. It is no longer valid.` 
+      };
+    }
+  }
+
+  if (voucher.minOrder && subtotal < voucher.minOrder) {
+    return { 
+      valid: false, 
+      error: `Minimum order of Rs. ${voucher.minOrder} is required for voucher "${voucher.code}". Current subtotal is Rs. ${subtotal}.` 
+    };
+  }
+
+  if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit) {
+    return { 
+      valid: false, 
+      error: `Voucher "${voucher.code}" has reached its maximum redemption limit (${voucher.usageLimit} uses).` 
+    };
+  }
+
+  // Calculate discount amount
+  let discountableAmount = subtotal;
+  if (voucher.appliesTo === 'drinks') {
+    discountableAmount = items.reduce((acc, item) => {
+      if (item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'custom') {
+        return acc + (item.price * item.quantity);
+      }
+      return acc;
+    }, 0);
+  } else if (voucher.appliesTo === 'food') {
+    discountableAmount = items.reduce((acc, item) => {
+      if (item.category === 'bakery' || item.category === 'dessert') {
+        return acc + (item.price * item.quantity);
+      }
+      return acc;
+    }, 0);
+  }
+
+  let discount = 0;
+  if (voucher.discountType === 'percentage') {
+    discount = Math.round((discountableAmount * voucher.discountValue) / 100);
+  } else {
+    discount = Math.min(voucher.discountValue, subtotal);
+  }
+
+  if (discount <= 0 && voucher.appliesTo === 'drinks') {
+    return {
+      valid: false,
+      error: `Voucher "${voucher.code}" applies to handcrafted coffee drinks only. Please add a drink to your basket.`
+    };
+  }
+
+  return {
+    valid: true,
+    discount,
+    voucher
+  };
+};
+

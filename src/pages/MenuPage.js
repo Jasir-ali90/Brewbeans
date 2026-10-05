@@ -80,21 +80,16 @@ export default function MenuPage({ menuItems, onAddToCart, onOpenCustomizer, car
             )}
           </div>
 
-          <button 
-            className={`sunday-filter-toggle ${onlySundayDeals ? 'active' : ''}`}
-            onClick={() => setOnlySundayDeals(!onlySundayDeals)}
-          >
-            <PercentIcon size={16} />
-            <span>Sunday 40% OFF Drinks</span>
-          </button>
-
-          <button 
-            className="btn-customizer-trigger"
-            onClick={onOpenCustomizer}
-          >
-            <SlidersIcon size={16} />
-            <span>Build Custom Brew</span>
-          </button>
+          <div className="filter-actions-row">
+            <button 
+              type="button"
+              className={`sunday-filter-toggle ${onlySundayDeals ? 'active' : ''}`}
+              onClick={() => setOnlySundayDeals(!onlySundayDeals)}
+            >
+              <PercentIcon size={15} />
+              <span>Sunday 40% OFF</span>
+            </button>
+          </div>
         </div>
 
         {/* Category Tabs */}

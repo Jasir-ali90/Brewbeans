@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="beanGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#dfa86b" />
+      <stop offset="50%" stop-color="#8a542a" />
+      <stop offset="100%" stop-color="#3d2110" />
+    </radialGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd599" />
+      <stop offset="100%" stop-color="#c68a4c" />
+    </linearGradient>
+  </defs>
+  <!-- Background circular badge -->
+  <circle cx="32" cy="32" r="30" fill="#14110e" stroke="#c68a4c" stroke-width="2.5" />
+  
+  <!-- Coffee Bean Outline & Shape -->
+  <path d="M 32 12 C 44 12, 52 21, 52 32 C 52 43, 44 52, 32 52 C 20 52, 12 43, 12 32 C 12 21, 20 12, 32 12 Z" fill="url(#beanGrad)" stroke="#c68a4c" stroke-width="1.5" />
+  
+  <!-- S-curve line through coffee bean -->
+  <path d="M 32 13 C 27 22, 38 29, 31 39 C 27 45, 34 50, 32 51" fill="none" stroke="#ffd599" stroke-width="2.5" stroke-linecap="round" />
+  
+  <!-- Steam sparkles -->
+  <circle cx="24" cy="8" r="1.5" fill="#ffd599" opacity="0.8" />
+  <circle cx="38" cy="7" r="2" fill="#ffd599" opacity="0.9" />
+  <circle cx="32" cy="5" r="1.2" fill="#ffd599" opacity="0.7" />
+</svg>

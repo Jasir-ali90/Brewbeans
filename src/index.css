@@ -1,0 +1,123 @@
+/* Brewbeans Karachi - Design System & Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg-primary: #0d0c0a;
+  --bg-surface: #151310;
+  --bg-surface-elevated: #1e1b16;
+  --bg-surface-card: #181512;
+  --bg-surface-translucent: rgba(21, 19, 16, 0.85);
+
+  --accent-gold: #e2b078;
+  --accent-gold-light: #f3d4a0;
+  --accent-gold-dark: #b88647;
+  --accent-amber: #e76f51;
+  --accent-cream: #faf5ed;
+  --accent-caramel: #c88a4b;
+
+  --foodpanda: #d70f64;
+  --whatsapp: #25D366;
+  --status-open: #10b981;
+
+  --text-primary: #fcf9f4;
+  --text-secondary: #c7beaf;
+  --text-muted: #8e8372;
+  --text-accent: #e2b078;
+
+  --border-subtle: rgba(226, 176, 120, 0.12);
+  --border-medium: rgba(226, 176, 120, 0.25);
+  --border-glow: rgba(226, 176, 120, 0.45);
+
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.7);
+  --shadow-gold: 0 8px 30px rgba(226, 176, 120, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 50% 0%, #1c1711 0%, #0d0c0a 70%);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: #332d24;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Base Headings & Links */
+h1, h2, h3, h4, .serif-font {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+/* Utility Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes steamRise {
+  0% { transform: translateY(0) scaleX(1); opacity: 0; }
+  50% { transform: translateY(-10px) scaleX(1.2); opacity: 0.8; }
+  100% { transform: translateY(-24px) scaleX(1.4); opacity: 0; }
+}
+
+.float-animation {
+  animation: floatGentle 4s ease-in-out infinite;
+}
+
+.pulse-beacon {
+  animation: pulseGlow 2s ease-in-out infinite;
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   CheckIcon, 
   PlusIcon, 
@@ -49,6 +49,23 @@ export default function AdminPage({
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(null);
+
+  const tabsScrollRef = useRef(null);
+
+  const scrollTabs = (offset) => {
+    if (tabsScrollRef.current) {
+      tabsScrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (tabsScrollRef.current) {
+      const activeBtn = tabsScrollRef.current.querySelector('.admin-tab-btn.active');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [activeTab]);
 
   const getDefaultExpiry = (days = 7) => {
     const d = new Date();
@@ -429,44 +446,72 @@ export default function AdminPage({
 
       {/* Admin Tabs */}
       <div className="admin-tabs-nav-bar">
-        <div className="section-container admin-tabs-container">
-          <button 
-            className={`admin-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            <span>📊 Overview</span>
-          </button>
-          <button 
-            className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
-            onClick={() => setActiveTab('orders')}
-          >
-            <span>📦 Orders ({activeOrdersCount} Active)</span>
-          </button>
-          <button 
-            className={`admin-tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('bookings')}
-          >
-            <span>📅 Table Reservations ({totalBookingsCount})</span>
-          </button>
-          <button 
-            className={`admin-tab-btn ${activeTab === 'menu' ? 'active' : ''}`}
-            onClick={() => setActiveTab('menu')}
-          >
-            <span>☕ Menu Catalog ({menuItems.length})</span>
-          </button>
-          <button 
-            className={`admin-tab-btn ${activeTab === 'reviews' ? 'active' : ''}`}
-            onClick={() => setActiveTab('reviews')}
-          >
-            <span>⭐ Reviews ({reviews.length})</span>
-          </button>
-          <button 
-            className={`admin-tab-btn ${activeTab === 'vouchers' ? 'active' : ''}`}
-            onClick={() => setActiveTab('vouchers')}
-          >
-            <span>🎟️ Vouchers ({vouchers.length})</span>
-          </button>
+        <button 
+          type="button" 
+          className="admin-tabs-nav-arrow left" 
+          onClick={() => scrollTabs(-180)}
+          aria-label="Scroll tabs left"
+          title="Scroll Left"
+        >
+          ‹
+        </button>
+
+        <div className="admin-tabs-scroll-track" ref={tabsScrollRef}>
+          <div className="admin-tabs-container">
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              <span>📊 Overview</span>
+            </button>
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <span>📦 Orders ({activeOrdersCount} Active)</span>
+            </button>
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('bookings')}
+            >
+              <span>📅 Table Reservations ({totalBookingsCount})</span>
+            </button>
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'menu' ? 'active' : ''}`}
+              onClick={() => setActiveTab('menu')}
+            >
+              <span>☕ Menu Catalog ({menuItems.length})</span>
+            </button>
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'reviews' ? 'active' : ''}`}
+              onClick={() => setActiveTab('reviews')}
+            >
+              <span>⭐ Reviews ({reviews.length})</span>
+            </button>
+            <button 
+              type="button"
+              className={`admin-tab-btn ${activeTab === 'vouchers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('vouchers')}
+            >
+              <span>🎟️ Vouchers ({vouchers.length})</span>
+            </button>
+          </div>
         </div>
+
+        <button 
+          type="button" 
+          className="admin-tabs-nav-arrow right" 
+          onClick={() => scrollTabs(180)}
+          aria-label="Scroll tabs right"
+          title="Scroll Right"
+        >
+          ›
+        </button>
       </div>
 
       {/* Admin Main Body */}

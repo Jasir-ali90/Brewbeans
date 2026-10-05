@@ -3032,68 +3032,200 @@ input[type="date"].form-input {
 }
 
 .admin-order-card {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
+  background: linear-gradient(145deg, #191410 0%, #110e0b 100%);
+  border: 1px solid rgba(226, 176, 120, 0.16);
   border-radius: var(--radius-lg);
   padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
 }
 
+.admin-order-card:hover {
+  border-color: rgba(226, 176, 120, 0.32);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* Executive Order Card Header */
 .order-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 18px;
+  gap: 16px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.order-code {
-  font-size: 1.15rem;
+.order-header-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.order-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.order-tag-label {
+  display: inline-block;
+  background: rgba(226, 176, 120, 0.12);
+  border: 1px solid rgba(226, 176, 120, 0.3);
+  color: var(--accent-gold);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.order-code-val {
+  font-family: monospace;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #fff;
-  margin-right: 12px;
+  letter-spacing: 0.04em;
 }
 
-.order-timestamp {
+.order-sub-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
   font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-.order-header-badges {
-  display: flex;
-  gap: 8px;
+.order-time-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.payment-badge-tag {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-}
-
-.payment-badge-tag.cod {
-  background: rgba(226, 176, 120, 0.15);
+.meta-icon-gold {
   color: var(--accent-gold);
 }
 
-.payment-badge-tag.online {
-  background: rgba(74, 222, 128, 0.15);
-  color: #4ade80;
+.order-fulfillment-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
 }
 
-.status-badge-tag {
-  font-size: 0.75rem;
+/* Badges: Rectangular Rounded Luxury Badges - NEVER circular blobs */
+.order-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.payment-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background: #3b82f6;
-  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
-.status-badge-tag.brewing { background: #f59e0b; }
-.status-badge-tag.out-for-delivery { background: #8b5cf6; }
-.status-badge-tag.delivered { background: #10b981; }
+.payment-pill-badge.cod {
+  background: rgba(226, 176, 120, 0.14);
+  border: 1px solid rgba(226, 176, 120, 0.4);
+  color: #f6d8b0;
+}
 
+.payment-pill-badge.online,
+.payment-pill-badge.card,
+.payment-pill-badge.wallet {
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.status-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.status-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-pill-badge.received {
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+.status-pill-badge.received .status-indicator-dot {
+  background: #60a5fa;
+  box-shadow: 0 0 6px #3b82f6;
+}
+
+.status-pill-badge.brewing {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fde047;
+}
+.status-pill-badge.brewing .status-indicator-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: pulseDot 1.5s infinite;
+}
+
+.status-pill-badge.out-for-delivery {
+  background: rgba(139, 92, 246, 0.16);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  color: #d8b4fe;
+}
+.status-pill-badge.out-for-delivery .status-indicator-dot {
+  background: #a855f7;
+  box-shadow: 0 0 8px #8b5cf6;
+}
+
+.status-pill-badge.delivered {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #86efac;
+}
+.status-pill-badge.delivered .status-indicator-dot {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* Order Card Body */
 .order-body-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
@@ -3101,79 +3233,216 @@ input[type="date"].form-input {
   margin-bottom: 20px;
 }
 
-.order-info-col h5, .order-items-col h5 {
+.section-col-title {
   font-size: 0.95rem;
+  font-weight: 700;
   color: #fff;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-bottom: 8px;
-}
-
-.order-info-col p {
   font-size: 0.85rem;
+}
+
+.info-key {
+  color: var(--text-muted);
+  font-weight: 600;
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.info-val {
+  color: #e5ded4;
+}
+
+.info-val.strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+.info-phone-link {
+  color: var(--accent-gold);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.info-phone-link:hover {
+  text-decoration: underline;
+  color: #fff;
+}
+
+.address-item .address-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
   color: var(--text-secondary);
-  margin-bottom: 4px;
+  line-height: 1.4;
 }
 
-.order-note-text {
-  color: var(--accent-gold) !important;
+.pin-icon {
+  color: var(--accent-gold);
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.payment-status-detail {
-  margin-top: 8px;
+.admin-order-note-alert {
+  background: rgba(226, 176, 120, 0.08);
+  border-left: 3px solid var(--accent-gold);
+  padding: 8px 12px;
+  border-radius: 4px;
   font-size: 0.82rem;
-  color: #34d399 !important;
+  color: #f6d8b0;
+  margin: 10px 0;
 }
 
+.payment-status-row {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.payment-status-highlight {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.payment-status-highlight.cod-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.payment-status-highlight.online-settled {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+/* Ordered Items Styling */
 .admin-item-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  margin-bottom: 14px;
 }
 
 .admin-item-list li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.order-pricing-summary {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.order-grand-total {
-  font-size: 0.95rem;
-  color: #fff;
-  margin-top: 4px;
-}
-
-.order-card-actions {
+.item-name-tag {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-subtle);
+  color: #f0e9df;
+  font-weight: 500;
+}
+
+.qty-chip {
+  background: rgba(226, 176, 120, 0.15);
+  color: var(--accent-gold);
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.item-price-val {
+  color: #fff;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.order-pricing-summary {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 0.82rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.summary-line.discount {
+  color: var(--accent-gold);
+}
+
+.order-grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.grand-total-amount {
+  font-size: 1.15rem;
+  color: var(--accent-gold);
+  font-family: monospace;
+}
+
+/* Order Actions */
+.order-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-wrap: wrap;
 }
 
-.action-label {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin-right: 6px;
+.order-card-actions .action-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.order-status-btns-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status-btn {
-  background: var(--bg-surface-card);
-  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .status-btn.active {
@@ -3181,16 +3450,25 @@ input[type="date"].form-input {
   color: #14120e;
   border-color: var(--accent-gold);
   font-weight: 800;
+  box-shadow: 0 2px 10px rgba(226, 176, 120, 0.35);
 }
 
 .btn-delete-order {
   margin-left: auto;
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #f87171;
-  font-size: 0.78rem;
-  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-order:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fff;
 }
 
 /* Menu Management Tab */
@@ -5928,6 +6206,107 @@ input[type="date"].form-input {
     max-height: 90vh !important;
     overflow-y: auto !important;
     box-sizing: border-box !important;
+  }
+
+  /* Admin Order Card Mobile Polish */
+  .admin-order-card {
+    padding: 16px 14px !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .order-card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-bottom: 14px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .order-header-identity {
+    width: 100% !important;
+    gap: 6px !important;
+  }
+
+  .order-code-row {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+  }
+
+  .order-code-val {
+    font-size: 1.15rem !important;
+    word-break: break-all !important;
+  }
+
+  .order-sub-meta {
+    width: 100% !important;
+    font-size: 0.76rem !important;
+    gap: 8px !important;
+  }
+
+  .order-header-badges {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .payment-pill-badge,
+  .status-pill-badge {
+    padding: 6px 12px !important;
+    font-size: 0.76rem !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .order-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .order-info-col,
+  .order-items-col {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 14px 12px !important;
+  }
+
+  .order-card-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .order-card-actions .action-label {
+    margin-bottom: 2px !important;
+  }
+
+  .order-status-btns-group {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .order-status-btns-group .status-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 9px 8px !important;
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
+
+  .btn-delete-order {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding: 9px !important;
+    text-align: center !important;
+    justify-content: center !important;
   }
 
   /* Universal Section Containers Protection */

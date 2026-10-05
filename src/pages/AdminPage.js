@@ -4,7 +4,9 @@ import {
   PlusIcon, 
   XIcon, 
   SearchIcon, 
-  ArrowRightIcon 
+  ArrowRightIcon,
+  ClockIcon,
+  MapPinIcon
 } from '../components/Icons';
 
 export default function AdminPage({ 
@@ -395,52 +397,103 @@ export default function AdminPage({
               {filteredOrders.length > 0 ? (
                 filteredOrders.map(order => (
                   <div key={order.id} className="admin-order-card">
+                    {/* Executive Order Header */}
                     <div className="order-card-header">
-                      <div>
-                        <span className="order-code">Order #{order.id}</span>
-                        <span className="order-timestamp">{order.placedAt}</span>
+                      <div className="order-header-identity">
+                        <div className="order-code-row">
+                          <span className="order-tag-label">ORDER</span>
+                          <span className="order-code-val">#{order.id}</span>
+                        </div>
+                        <div className="order-sub-meta">
+                          <span className="order-time-text">
+                            <ClockIcon size={13} className="meta-icon-gold" />
+                            {order.placedAt}
+                          </span>
+                          <span className="order-fulfillment-tag">
+                            {order.deliveryType === 'pickup' ? '🛍️ Takeaway' : '🛵 Doorstep Delivery'}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="order-header-badges">
-                        <span className={`payment-badge-tag ${order.paymentMethod.toLowerCase()}`}>
+                        <span className={`payment-pill-badge ${order.paymentMethod.toLowerCase()}`}>
                           {order.paymentMethod === 'COD' ? '💵 Cash on Delivery' : '💳 Online Paid'}
                         </span>
-                        <span className={`status-badge-tag ${order.orderStatus.toLowerCase().replace(/\s+/g, '-')}`}>
-                          {order.orderStatus}
+                        <span className={`status-pill-badge ${order.orderStatus.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <span className="status-indicator-dot"></span>
+                          <span>{order.orderStatus}</span>
                         </span>
                       </div>
                     </div>
 
                     <div className="order-body-grid">
-                      {/* Customer Info */}
+                      {/* Customer Info Column */}
                       <div className="order-info-col">
-                        <h5>Customer & Delivery Info</h5>
-                        <p><strong>Name:</strong> {order.customerName}</p>
-                        <p><strong>Phone:</strong> <a href={`tel:${order.phone}`}>{order.phone}</a></p>
-                        <p><strong>Delivery Address:</strong> {order.address}</p>
-                        {order.notes && <p className="order-note-text"><strong>Note:</strong> {order.notes}</p>}
-                        <p className="payment-status-detail">
-                          <strong>Payment Status:</strong> {order.paymentStatus}
-                        </p>
+                        <h5 className="section-col-title">Customer & Delivery Info</h5>
+                        <div className="admin-info-item">
+                          <span className="info-key">Name:</span>
+                          <span className="info-val strong">{order.customerName}</span>
+                        </div>
+                        <div className="admin-info-item">
+                          <span className="info-key">Phone:</span>
+                          <a href={`tel:${order.phone}`} className="info-phone-link">
+                            📞 {order.phone}
+                          </a>
+                        </div>
+                        <div className="admin-info-item address-item">
+                          <span className="info-key">Address:</span>
+                          <span className="info-val address-text">
+                            <MapPinIcon size={14} className="pin-icon" />
+                            {order.address}
+                          </span>
+                        </div>
+                        {order.notes && (
+                          <div className="admin-order-note-alert">
+                            <strong>Special Note:</strong> {order.notes}
+                          </div>
+                        )}
+                        <div className="admin-info-item payment-status-row">
+                          <span className="info-key">Payment:</span>
+                          <span className={`payment-status-highlight ${order.paymentMethod === 'COD' ? 'cod-pending' : 'online-settled'}`}>
+                            {order.paymentStatus}
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Items List */}
+                      {/* Items List Column */}
                       <div className="order-items-col">
-                        <h5>Ordered Coffee & Bakery Items</h5>
+                        <h5 className="section-col-title">Ordered Coffee & Bakery Items</h5>
                         <ul className="admin-item-list">
                           {order.items.map((it, idx) => (
                             <li key={idx}>
-                              <span>{it.name} (x{it.quantity})</span>
-                              <span>Rs. {it.price * it.quantity}</span>
+                              <span className="item-name-tag">
+                                <span className="qty-chip">x{it.quantity}</span>
+                                {it.name}
+                              </span>
+                              <span className="item-price-val">Rs. {it.price * it.quantity}</span>
                             </li>
                           ))}
                         </ul>
 
                         <div className="order-pricing-summary">
-                          <div>Subtotal: Rs. {order.subtotal}</div>
-                          {order.discount > 0 && <div>Sunday Deal (40% OFF): -Rs. {order.discount}</div>}
-                          <div>Delivery: Rs. {order.deliveryFee}</div>
-                          <div className="order-grand-total">Grand Total: <strong>Rs. {order.total}</strong></div>
+                          <div className="summary-line">
+                            <span>Subtotal</span>
+                            <span>Rs. {order.subtotal}</span>
+                          </div>
+                          {order.discount > 0 && (
+                            <div className="summary-line discount">
+                              <span>Sunday Deal (40% OFF)</span>
+                              <span>-Rs. {order.discount}</span>
+                            </div>
+                          )}
+                          <div className="summary-line">
+                            <span>Delivery Fee</span>
+                            <span>{order.deliveryFee === 0 ? 'FREE' : `Rs. ${order.deliveryFee}`}</span>
+                          </div>
+                          <div className="order-grand-total">
+                            <span>Grand Total:</span>
+                            <strong className="grand-total-amount">Rs. {order.total}</strong>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -448,30 +501,32 @@ export default function AdminPage({
                     {/* Status Update Actions */}
                     <div className="order-card-actions">
                       <span className="action-label">Update Status:</span>
-                      <button 
-                        className={`status-btn ${order.orderStatus === 'Received' ? 'active' : ''}`}
-                        onClick={() => onUpdateOrderStatus(order.id, 'Received')}
-                      >
-                        Received
-                      </button>
-                      <button 
-                        className={`status-btn ${order.orderStatus === 'Brewing' ? 'active' : ''}`}
-                        onClick={() => onUpdateOrderStatus(order.id, 'Brewing')}
-                      >
-                        ☕ Brewing
-                      </button>
-                      <button 
-                        className={`status-btn ${order.orderStatus === 'Out for Delivery' ? 'active' : ''}`}
-                        onClick={() => onUpdateOrderStatus(order.id, 'Out for Delivery')}
-                      >
-                        🛵 Out for Delivery
-                      </button>
-                      <button 
-                        className={`status-btn ${order.orderStatus === 'Delivered' ? 'active' : ''}`}
-                        onClick={() => onUpdateOrderStatus(order.id, 'Delivered')}
-                      >
-                        ✨ Delivered
-                      </button>
+                      <div className="order-status-btns-group">
+                        <button 
+                          className={`status-btn ${order.orderStatus === 'Received' ? 'active' : ''}`}
+                          onClick={() => onUpdateOrderStatus(order.id, 'Received')}
+                        >
+                          Received
+                        </button>
+                        <button 
+                          className={`status-btn ${order.orderStatus === 'Brewing' ? 'active' : ''}`}
+                          onClick={() => onUpdateOrderStatus(order.id, 'Brewing')}
+                        >
+                          ☕ Brewing
+                        </button>
+                        <button 
+                          className={`status-btn ${order.orderStatus === 'Out for Delivery' ? 'active' : ''}`}
+                          onClick={() => onUpdateOrderStatus(order.id, 'Out for Delivery')}
+                        >
+                          🛵 Out for Delivery
+                        </button>
+                        <button 
+                          className={`status-btn ${order.orderStatus === 'Delivered' ? 'active' : ''}`}
+                          onClick={() => onUpdateOrderStatus(order.id, 'Delivered')}
+                        >
+                          ✨ Delivered
+                        </button>
+                      </div>
 
                       <button 
                         className="btn-delete-order"
@@ -481,7 +536,7 @@ export default function AdminPage({
                           }
                         }}
                       >
-                        Delete
+                        Delete Order
                       </button>
                     </div>
                   </div>

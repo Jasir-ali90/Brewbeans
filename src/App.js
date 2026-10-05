@@ -43,11 +43,26 @@ function App() {
   const [promoCode, setPromoCode] = useState(isSunday ? 'SUNDAY40' : '');
   const [promoApplied, setPromoApplied] = useState(isSunday);
 
-  // Synchronized Menu Catalog (LocalStorage Persistence)
+  // Synchronized Menu Catalog (LocalStorage Persistence with Versioning)
+  const MENU_VERSION = 'v2_official_menu_41';
   const [menuItems, setMenuItems] = useState(() => {
+    const savedVersion = localStorage.getItem('brewbeans_menu_version');
     const saved = localStorage.getItem('brewbeans_menu');
-    return saved ? JSON.parse(saved) : INITIAL_MENU_ITEMS;
+    if (saved && savedVersion === MENU_VERSION) {
+      return JSON.parse(saved);
+    }
+    localStorage.setItem('brewbeans_menu_version', MENU_VERSION);
+    localStorage.setItem('brewbeans_menu', JSON.stringify(INITIAL_MENU_ITEMS));
+    return INITIAL_MENU_ITEMS;
   });
+
+  const handleResetMenu = () => {
+    if (window.confirm('Reset menu catalog to the official 41 Brew Beans Coffee Bar items? Custom additions will be overwritten.')) {
+      setMenuItems(INITIAL_MENU_ITEMS);
+      localStorage.setItem('brewbeans_menu_version', MENU_VERSION);
+      localStorage.setItem('brewbeans_menu', JSON.stringify(INITIAL_MENU_ITEMS));
+    }
+  };
 
   // Synchronized Orders (LocalStorage Persistence)
   const [orders, setOrders] = useState(() => {
@@ -341,6 +356,7 @@ function App() {
             onAddMenuItem={handleAddMenuItem}
             onUpdateMenuItem={handleUpdateMenuItem}
             onDeleteMenuItem={handleDeleteMenuItem}
+            onResetMenu={handleResetMenu}
             reviews={reviews}
             onDeleteReview={handleDeleteReview}
             vouchers={vouchers}

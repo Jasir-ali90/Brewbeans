@@ -10,12 +10,12 @@ import {
 } from '../components/Icons';
 
 const CATEGORIES = [
-  { id: 'all', label: 'All Drinks & Treats' },
-  { id: 'frappe', label: 'Frappes & Coolers' },
-  { id: 'iced', label: 'Iced & Cold Brews' },
-  { id: 'hot', label: 'Hot Specialty Coffee' },
-  { id: 'desserts', label: 'Bakery & Desserts' },
-  { id: 'beans', label: 'Whole Roasted Beans' },
+  { id: 'all', label: '☕ All Menu' },
+  { id: 'hot', label: '🔥 Hot Coffees' },
+  { id: 'iced', label: '🧊 Cold Coffees' },
+  { id: 'frappe', label: '🥤 Frappe Coffees' },
+  { id: 'coolers', label: '🍹 Summer Coolers' },
+  { id: 'desserts', label: '🥐 Desserts' },
 ];
 
 export default function MenuPage({ menuItems, onAddToCart, onOpenCustomizer, cartCount, onNavigate }) {
@@ -35,7 +35,7 @@ export default function MenuPage({ menuItems, onAddToCart, onOpenCustomizer, car
         (item.tag && item.tag.toLowerCase().includes(q));
 
       // Sunday deal match
-      const isDrink = item.category === 'hot' || item.category === 'iced' || item.category === 'frappe';
+      const isDrink = item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'coolers';
       const sundayMatch = !onlySundayDeals || isDrink;
 
       return catMatch && searchMatch && sundayMatch;
@@ -132,11 +132,16 @@ export default function MenuPage({ menuItems, onAddToCart, onOpenCustomizer, car
           </div>
         </div>
 
+        {/* Authentic Menu Tax Notice */}
+        <div className="menu-tax-strip">
+          <span>📋 Official Brew Beans Coffee Bar Menu • All prices are in PKR and excluded of GST</span>
+        </div>
+
         {/* Menu Items Grid with Real Photos */}
         {filteredItems.length > 0 ? (
           <div className="menu-catalog-grid">
             {filteredItems.map(item => {
-              const isDrink = item.category === 'hot' || item.category === 'iced' || item.category === 'frappe';
+              const isDrink = item.category === 'hot' || item.category === 'iced' || item.category === 'frappe' || item.category === 'coolers';
               const sundayPrice = isDrink ? Math.round(item.price * 0.6) : null;
 
               return (

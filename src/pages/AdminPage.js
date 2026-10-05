@@ -23,6 +23,7 @@ export default function AdminPage({
   onAddMenuItem,
   onUpdateMenuItem,
   onDeleteMenuItem,
+  onResetMenu,
   reviews,
   onDeleteReview,
   vouchers = [],
@@ -49,6 +50,66 @@ export default function AdminPage({
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(null);
+
+  // Admin Menu Catalog Search & Category Filters
+  const [adminMenuCat, setAdminMenuCat] = useState('all');
+  const [adminMenuSearch, setAdminMenuSearch] = useState('');
+  const [imageUploadStatus, setImageUploadStatus] = useState('');
+  const imageFileInputRef = useRef(null);
+
+  const handleImageFileUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file (PNG, JPG, JPEG, WEBP).');
+      return;
+    }
+
+    setImageUploadStatus('Compressing & preparing image...');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 500;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setItemForm(prev => ({
+          ...prev,
+          image: compressedDataUrl
+        }));
+        setImageUploadStatus(`✓ Ready! "${file.name}" uploaded successfully.`);
+      };
+      img.onerror = () => {
+        setImageUploadStatus('❌ Error loading image.');
+      };
+      img.src = event.target.result;
+    };
+    reader.onerror = () => {
+      setImageUploadStatus('❌ Error reading file.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   const tabsScrollRef = useRef(null);
 
@@ -113,28 +174,58 @@ export default function AdminPage({
     inStock: true,
   });
 
-  // Real Image Presets for easy selection in Admin
+  // Official Menu Image Presets for easy selection in Admin
   const realImagePresets = [
-    { label: 'Tiramisu Brew Frappe', path: '/images/real/real_img_3.jpg' },
-    { label: 'Iced Spanish Latte', path: '/images/real/real_img_4.jpg' },
-    { label: 'Roasted Hazelnut Frappe', path: '/images/real/real_img_5.jpg' },
-    { label: 'Iced French Vanilla', path: '/images/real/real_img_6.jpg' },
-    { label: 'Fresh Chill Mocha', path: '/images/real/real_img_7.jpg' },
-    { label: 'Tiramisu Iced Delight', path: '/images/real/real_img_8.jpg' },
-    { label: 'Golden Beans Latte', path: '/images/real/real_img_9.jpg' },
-    { label: 'Cloud Flat White', path: '/images/real/real_img_10.jpg' },
-    { label: 'Hot Spanish Latte', path: '/images/real/real_img_11.jpg' },
-    { label: 'Caramel Latte', path: '/images/real/real_img_12.jpg' },
-    { label: 'Double Espresso', path: '/images/real/real_img_13.jpg' },
-    { label: 'Caramel Rush Brew', path: '/images/real/real_img_14.jpg' },
-    { label: 'Strawberry Bliss', path: '/images/real/real_img_16.jpg' },
-    { label: 'Pistachio Cocoa Crush', path: '/images/real/real_img_17.jpg' },
-    { label: 'Lotus Biscoff Cheesecake', path: '/images/real/real_img_18.jpg' },
-    { label: 'Warm Nutella Brownie', path: '/images/real/real_img_19.jpg' },
-    { label: 'Chocolate Chip Cookie', path: '/images/real/real_img_20.jpg' },
-    { label: 'Classic Tiramisu Cup', path: '/images/real/real_img_21.jpg' },
-    { label: 'Signature Beans 250g', path: '/images/real/real_img_22.jpg' },
-    { label: 'Ethiopian Single Origin', path: '/images/real/real_img_23.jpg' },
+    // Hot Coffees
+    { label: '🔥 Brew Espresso', path: '/images/menu/brew-espresso.png' },
+    { label: '🔥 Golden Beans Latte', path: '/images/menu/golden-beans-latte.png' },
+    { label: '🔥 Cloud Brew Flat White', path: '/images/menu/cloud-brew-flat-white.png' },
+    { label: '🔥 Royal Beans Spanish Latte', path: '/images/menu/royal-beans-spanish-latte.png' },
+    { label: '🔥 Caramel Brew Latte', path: '/images/menu/caramel-brew-latte.png' },
+    { label: '🔥 Beans Vanilla Latte', path: '/images/menu/beans-vanilla-latte.png' },
+    { label: '🔥 Roasted Beans Hazelnut Latte', path: '/images/menu/roasted-beans-hazelnut-latte.png' },
+    { label: '🔥 Emerald Brew Pistachio Latte', path: '/images/menu/emerald-brew-pistachio-latte.png' },
+    { label: '🔥 Dream Beans Tiramisu Latte', path: '/images/menu/dream-beans-tiramisu-latte.png' },
+    { label: '🔥 Bold Brew Americano', path: '/images/menu/bold-brew-americano.png' },
+    { label: '🔥 Classic Beans Hot Chocolate', path: '/images/menu/classic-beans-hot-chocolate.png' },
+    { label: '🔥 Brew Pistachio Chocolate', path: '/images/menu/brew-pistachio-chocolate.png' },
+
+    // Cold Coffees
+    { label: '🧊 Brew Iced Latte', path: '/images/menu/brew-iced-latte.png' },
+    { label: '🧊 Iced Beans Spanish Latte', path: '/images/menu/iced-beans-spanish-latte.png' },
+    { label: '🧊 Vanilla Brew Iced Latte', path: '/images/menu/vanilla-brew-iced-latte.png' },
+    { label: '🧊 French Vanilla Latte', path: '/images/menu/french-vanilla-latte.png' },
+    { label: '🧊 Brewed Americano', path: '/images/menu/brewed-americano.png' },
+    { label: '🧊 Creamy Brew Iced Cappuccino', path: '/images/menu/creamy-brew-iced-cappuccino.png' },
+    { label: '🧊 Chocolate Beans Iced Latte', path: '/images/menu/chocolate-beans-iced-latte.png' },
+    { label: '🧊 Chill Brew Iced Chocolate', path: '/images/menu/chill-brew-iced-chocolate.png' },
+    { label: '🧊 Tiramisu Beans Iced Delight', path: '/images/menu/tiramisu-beans-iced-delight.png' },
+    { label: '🧊 Hazelnut Brewed Iced Latte', path: '/images/menu/hazelnut-brewed-iced-latte.png' },
+    { label: '🧊 Caramel Beans Iced Macchiato', path: '/images/menu/caramel-beans-iced-macchiato.png' },
+    { label: '🧊 Pistachio Brew Iced Latte', path: '/images/menu/pistachio-brew-iced-latte.png' },
+
+    // Frappe Coffees
+    { label: '🥤 Vanilla Beans Bliss', path: '/images/menu/vanilla-beans-bliss.png' },
+    { label: '🥤 Caramel Rush Brew', path: '/images/menu/caramel-rush-brew.png' },
+    { label: '🥤 Strawberry Beans Bliss', path: '/images/menu/strawberry-beans-bliss.png' },
+    { label: '🥤 Tiramisu Brew Frappe', path: '/images/menu/tiramisu-brew-frappe.png' },
+    { label: '🥤 Pistachio Cocoa Crush', path: '/images/menu/pistachio-cocoa-crush.png' },
+    { label: '🥤 Lotus Frappe (NEW)', path: '/images/menu/lotus-frappe.png' },
+    { label: '🥤 Fresh Chill Mocha', path: '/images/menu/fresh-chill-mocha.png' },
+    { label: '🥤 Roasted Hazelnut Frappe', path: '/images/menu/roasted-hazelnut-frappe.png' },
+    { label: '🥤 Raspberry Frappe', path: '/images/menu/raspberry-frappe.png' },
+
+    // Summer Coolers
+    { label: '🍹 Blue Lagoon Smash', path: '/images/menu/blue-lagoon-smash.png' },
+    { label: '🍹 Strawberry Lemonade', path: '/images/menu/strawberry-lemonade.png' },
+    { label: '🍹 Peach Ice Tea', path: '/images/menu/peach-ice-tea.png' },
+    { label: '🍹 Raspberry Ice Tea', path: '/images/menu/raspberry-ice-tea.png' },
+
+    // Desserts
+    { label: '🥐 Chocolate Croissants', path: '/images/menu/chocolate-croissants.png' },
+    { label: '🥐 Chocolate Chip Cookies', path: '/images/menu/chocolate-chip-cookies.png' },
+    { label: '🥐 Double Chocolate Cookies', path: '/images/menu/double-chocolate-cookies.png' },
+    { label: '🥐 Banana Bread', path: '/images/menu/banana-bread.png' },
   ];
 
   // Login handler
@@ -157,13 +248,14 @@ export default function AdminPage({
   // Open Add Item Modal
   const openAddItemModal = () => {
     setEditingItem(null);
+    setImageUploadStatus('');
     setItemForm({
       name: '',
       category: 'hot',
       price: '',
       tag: '',
       description: '',
-      image: '/images/real/real_img_3.jpg',
+      image: '/images/menu/brew-espresso.png',
       isPopular: false,
       inStock: true,
     });
@@ -173,6 +265,7 @@ export default function AdminPage({
   // Open Edit Item Modal
   const openEditItemModal = (item) => {
     setEditingItem(item);
+    setImageUploadStatus('');
     setItemForm({
       name: item.name,
       category: item.category,
@@ -867,17 +960,77 @@ export default function AdminPage({
             <div className="box-header-row mb-20">
               <div>
                 <h4>Menu Items & Pricing Catalog ({menuItems.length} Total)</h4>
-                <p>Add new coffees, edit prices, update descriptions, and manage stock.</p>
+                <p>Official Brew Beans Coffee Bar Menu • Manage items, upload photos, and update prices.</p>
               </div>
 
-              <button className="btn-add-menu-item-top" onClick={openAddItemModal}>
-                <PlusIcon size={16} />
-                <span>+ Add New Menu Item</span>
-              </button>
+              <div className="admin-menu-header-actions">
+                {onResetMenu && (
+                  <button 
+                    type="button" 
+                    className="btn-reset-menu-official"
+                    onClick={onResetMenu}
+                    title="Reset all 41 items to the official Brew Beans menu card"
+                  >
+                    ↺ Reset to Official Menu (41 Items)
+                  </button>
+                )}
+                <button className="btn-add-menu-item-top" onClick={openAddItemModal}>
+                  <PlusIcon size={16} />
+                  <span>+ Add New Coffee / Item</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Admin Menu Filter Controls */}
+            <div className="admin-menu-controls-row">
+              <div className="admin-search-wrap">
+                <input 
+                  type="text" 
+                  placeholder="Search coffee by name or tag (e.g. Spanish, Frappe, Croissant)..."
+                  value={adminMenuSearch}
+                  onChange={(e) => setAdminMenuSearch(e.target.value)}
+                  className="form-input admin-search-input"
+                />
+                {adminMenuSearch && (
+                  <button 
+                    className="clear-search-btn" 
+                    onClick={() => setAdminMenuSearch('')}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div className="admin-cat-pills-row">
+                {[
+                  { id: 'all', label: `All (${menuItems.length})` },
+                  { id: 'hot', label: `🔥 Hot (${menuItems.filter(i => i.category === 'hot').length})` },
+                  { id: 'iced', label: `🧊 Cold (${menuItems.filter(i => i.category === 'iced').length})` },
+                  { id: 'frappe', label: `🥤 Frappe (${menuItems.filter(i => i.category === 'frappe').length})` },
+                  { id: 'coolers', label: `🍹 Coolers (${menuItems.filter(i => i.category === 'coolers').length})` },
+                  { id: 'desserts', label: `🥐 Desserts (${menuItems.filter(i => i.category === 'desserts').length})` },
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`admin-cat-pill ${adminMenuCat === cat.id ? 'active' : ''}`}
+                    onClick={() => setAdminMenuCat(cat.id)}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="admin-menu-grid">
-              {menuItems.map(item => (
+              {menuItems
+                .filter(item => {
+                  const matchCat = adminMenuCat === 'all' || item.category === adminMenuCat;
+                  const q = adminMenuSearch.toLowerCase().trim();
+                  const matchSearch = !q || item.name.toLowerCase().includes(q) || (item.tag && item.tag.toLowerCase().includes(q));
+                  return matchCat && matchSearch;
+                })
+                .map(item => (
                 <div key={item.id} className="admin-menu-item-card">
                   <div className="item-thumb-frame">
                     <img src={item.image} alt={item.name} className="item-thumb-img" />
@@ -1196,11 +1349,11 @@ export default function AdminPage({
                     onChange={(e) => setItemForm({ ...itemForm, category: e.target.value })}
                     className="form-input"
                   >
-                    <option value="hot">Hot Specialty Coffee</option>
-                    <option value="iced">Iced & Cold Brews</option>
-                    <option value="frappe">Frappes & Coolers</option>
-                    <option value="desserts">Bakery & Desserts</option>
-                    <option value="beans">Whole Roasted Beans</option>
+                    <option value="hot">🔥 Hot Coffees</option>
+                    <option value="iced">🧊 Cold Coffees</option>
+                    <option value="frappe">🥤 Frappe Coffees</option>
+                    <option value="coolers">🍹 Summer Coolers</option>
+                    <option value="desserts">🥐 Desserts & Bakery</option>
                   </select>
                 </div>
 
@@ -1239,30 +1392,84 @@ export default function AdminPage({
                 />
               </div>
 
-              <div className="form-group">
-                <label>Select Authentic Real Image Preset</label>
-                <select
-                  value={itemForm.image}
-                  onChange={(e) => setItemForm({ ...itemForm, image: e.target.value })}
-                  className="form-input"
-                >
-                  {realImagePresets.map((preset, idx) => (
-                    <option key={idx} value={preset.path}>
-                      {preset.label} ({preset.path})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* DIRECT IMAGE FILE UPLOAD WITH PREVIEW */}
+              <div className="form-group admin-image-upload-wrapper">
+                <label className="admin-upload-header-label">
+                  <span>Coffee / Item Image *</span>
+                  <span className="upload-tip-badge">Device Upload & Official Presets</span>
+                </label>
 
-              <div className="form-group">
-                <label>Or Enter Custom Image URL / Path</label>
-                <input 
-                  type="text" 
-                  placeholder="/images/real/real_img_X.jpg or https://..."
-                  value={itemForm.image}
-                  onChange={(e) => setItemForm({ ...itemForm, image: e.target.value })}
-                  className="form-input"
-                />
+                {/* Upload & Preview Card */}
+                <div className="admin-photo-upload-card">
+                  <div className="admin-photo-preview-thumb">
+                    <img 
+                      src={itemForm.image || '/images/menu/brew-espresso.png'} 
+                      alt="Coffee Preview" 
+                      className="preview-cup-img"
+                      onError={(e) => { e.target.src = '/images/menu/brew-espresso.png'; }}
+                    />
+                  </div>
+
+                  <div className="admin-upload-actions-col">
+                    {/* Hidden Native File Input */}
+                    <input 
+                      type="file" 
+                      ref={imageFileInputRef} 
+                      accept="image/*" 
+                      style={{ display: 'none' }}
+                      onChange={handleImageFileUpload}
+                    />
+
+                    <button 
+                      type="button" 
+                      className="btn-trigger-upload"
+                      onClick={() => imageFileInputRef.current && imageFileInputRef.current.click()}
+                    >
+                      📁 {editingItem ? 'Change / Upload New Photo' : 'Upload Photo from Device / Gallery'}
+                    </button>
+
+                    {imageUploadStatus ? (
+                      <p className="upload-status-msg">{imageUploadStatus}</p>
+                    ) : (
+                      <small className="form-help-text">
+                        Tap button to select photo from phone or desktop. Works for new coffee and edits!
+                      </small>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preset & Custom URL Pickers */}
+                <div className="form-group mt-15">
+                  <label>Or Choose From Official Menu Presets</label>
+                  <select
+                    value={itemForm.image}
+                    onChange={(e) => {
+                      setItemForm({ ...itemForm, image: e.target.value });
+                      setImageUploadStatus('');
+                    }}
+                    className="form-input"
+                  >
+                    {realImagePresets.map((preset, idx) => (
+                      <option key={idx} value={preset.path}>
+                        {preset.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group mt-10">
+                  <label>Or Enter Custom Image URL / Path</label>
+                  <input 
+                    type="text" 
+                    placeholder="/images/menu/your-drink.png or https://..."
+                    value={itemForm.image}
+                    onChange={(e) => {
+                      setItemForm({ ...itemForm, image: e.target.value });
+                      setImageUploadStatus('');
+                    }}
+                    className="form-input"
+                  />
+                </div>
               </div>
 
               <div className="form-row-checkboxes">

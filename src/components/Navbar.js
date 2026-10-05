@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   ShoppingBagIcon, 
+  LockIcon,
   XIcon,
   ArrowRightIcon
 } from './Icons';

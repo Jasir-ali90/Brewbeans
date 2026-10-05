@@ -96,19 +96,19 @@ export default function Customizer({ isOpen, onClose, onAddCustomToCart }) {
   if (!isOpen) return null;
 
   return (
-    <div className="customizer-modal-overlay">
-      <div className="customizer-modal-content">
+    <div className="customizer-modal-overlay" onClick={onClose}>
+      <div className="customizer-modal-content" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="customizer-modal-header">
           <div className="customizer-header-title">
-            <SparklesIcon size={22} className="accent-icon" />
+            <SparklesIcon size={20} className="accent-icon" />
             <div>
-              <h2>Interactive Coffee Bar Customizer</h2>
-              <p>Craft your signature cup just the way you love it</p>
+              <h2>Interactive Coffee Studio</h2>
+              <p>Craft your signature cup with custom layers & milk</p>
             </div>
           </div>
           <button className="btn-close-modal" onClick={onClose} aria-label="Close customizer">
-            <XIcon size={24} />
+            <XIcon size={20} />
           </button>
         </div>
 
@@ -273,26 +273,28 @@ export default function Customizer({ isOpen, onClose, onAddCustomToCart }) {
                 ))}
               </div>
             </div>
-
-            {/* Modal Bottom Actions */}
-            <div className="customizer-footer-actions">
-              <button 
-                className="btn-add-custom-cart" 
-                onClick={handleAddToCart}
-              >
-                <ShoppingBagIcon size={18} />
-                <span>Add Custom Brew to Cart (Rs. {totalPrice})</span>
-              </button>
-
-              <button 
-                className="btn-order-custom-whatsapp" 
-                onClick={handleSendToWhatsApp}
-              >
-                <WhatsAppIcon size={18} />
-                <span>Send to WhatsApp Barista</span>
-              </button>
-            </div>
           </div>
+        </div>
+
+        {/* Dedicated Fixed Modal Footer Actions: NEVER overlaps options */}
+        <div className="customizer-footer-actions">
+          <button 
+            type="button"
+            className="btn-add-custom-cart" 
+            onClick={handleAddToCart}
+          >
+            <ShoppingBagIcon size={18} />
+            <span>Add Custom Brew to Cart (Rs. {totalPrice})</span>
+          </button>
+
+          <button 
+            type="button"
+            className="btn-order-custom-whatsapp" 
+            onClick={handleSendToWhatsApp}
+          >
+            <WhatsAppIcon size={18} />
+            <span>Send to WhatsApp Barista</span>
+          </button>
         </div>
       </div>
     </div>

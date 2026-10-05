@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ShoppingBagIcon, 
   LockIcon,
@@ -137,7 +138,7 @@ export default function Navbar({
             <span>Order Online</span>
           </button>
 
-          {/* Minimalist 2-Line Mobile Hamburger */}
+          {/* Minimalist 3-Line Mobile Hamburger */}
           <button 
             type="button"
             className={`luxury-hamburger mobile-only ${mobileMenuOpen ? 'is-active' : ''}`}
@@ -147,12 +148,13 @@ export default function Navbar({
           >
             <span className="ham-line line-1"></span>
             <span className="ham-line line-2"></span>
+            <span className="ham-line line-3"></span>
           </button>
         </div>
       </div>
 
-      {/* 4. Luxury Editorial Full-Screen Mobile Drawer */}
-      {mobileMenuOpen && (
+      {/* 4. Luxury Editorial Full-Screen Mobile Drawer via Portal */}
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
         <div className="luxury-mobile-overlay" onClick={() => setMobileMenuOpen(false)}>
           <div 
             className="luxury-mobile-panel" 
@@ -292,7 +294,8 @@ export default function Navbar({
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

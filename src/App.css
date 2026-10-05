@@ -272,44 +272,76 @@
   transform: translateY(-1px);
 }
 
-/* Minimalist 2-Line Hamburger */
+/* Architectural 3-Line Luxury Hamburger */
 .luxury-hamburger {
   background: none;
   border: none;
-  padding: 8px 4px;
+  padding: 8px 6px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.luxury-hamburger:hover {
+  background: rgba(226, 176, 120, 0.12);
 }
 
 .ham-line {
-  width: 24px;
-  height: 1.5px;
+  height: 2px;
   background: #fff;
-  border-radius: 1px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2px;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ham-line.line-1 {
+  width: 22px;
+}
+
+.ham-line.line-2 {
+  width: 16px;
+}
+
+.ham-line.line-3 {
+  width: 22px;
 }
 
 .luxury-hamburger.is-active .line-1 {
-  transform: translateY(4.25px) rotate(45deg);
+  transform: translateY(7px) rotate(45deg);
+  width: 22px;
   background: var(--accent-gold);
 }
 
 .luxury-hamburger.is-active .line-2 {
-  transform: translateY(-4.25px) rotate(-45deg);
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.luxury-hamburger.is-active .line-3 {
+  transform: translateY(-7px) rotate(-45deg);
+  width: 22px;
   background: var(--accent-gold);
 }
 
-/* 4. Luxury Full-Screen Editorial Mobile Overlay */
+/* 4. Luxury Full-Screen Editorial Mobile Overlay via Portal */
 .luxury-mobile-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  z-index: 9999;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 99999;
   display: flex;
   justify-content: flex-end;
   animation: fadeIn 0.25s ease;
@@ -317,17 +349,28 @@
 
 .luxury-mobile-panel {
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   height: 100%;
   background: #110e0c;
-  border-left: 1px solid rgba(226, 176, 120, 0.15);
+  border-left: 1px solid rgba(226, 176, 120, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 24px 20px;
   box-sizing: border-box;
   overflow-y: auto;
-  animation: slideDrawerIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-overflow-scrolling: touch;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8);
+  animation: slideDrawerIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDrawerIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .mobile-panel-header {
@@ -4938,33 +4981,46 @@ input[type="date"].form-input {
 
   /* Luxury Navbar Mobile */
   .luxury-nav-container {
-    padding: 10px 16px !important;
-    gap: 12px !important;
+    padding: 10px 14px !important;
+    gap: 8px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
   .luxury-brand {
-    gap: 10px !important;
+    gap: 9px !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
   }
 
   .luxury-logo-img {
     width: 34px !important;
     height: 34px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .luxury-brand-meta {
+    min-width: 0 !important;
   }
 
   .luxury-brand-name {
     font-size: 1.15rem !important;
-    letter-spacing: 0.1em !important;
+    letter-spacing: 0.08em !important;
+    white-space: nowrap !important;
+    line-height: 1.1 !important;
   }
 
   .luxury-brand-tag {
     font-size: 0.58rem !important;
-    letter-spacing: 0.16em !important;
+    letter-spacing: 0.12em !important;
+    white-space: nowrap !important;
+    margin-top: 2px !important;
   }
 
   .luxury-nav-right {
-    gap: 10px !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    align-items: center !important;
   }
 
   .luxury-cart-pill {
@@ -4974,9 +5030,9 @@ input[type="date"].form-input {
   }
 
   .luxury-hamburger {
-    width: 36px !important;
-    height: 36px !important;
-    padding: 8px !important;
+    width: 38px !important;
+    height: 38px !important;
+    padding: 7px 5px !important;
   }
 
   .btn-cart-trigger {
